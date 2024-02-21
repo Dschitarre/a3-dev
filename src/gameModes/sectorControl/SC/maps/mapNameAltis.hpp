@@ -1,0 +1,45 @@
+class MapName {
+    title = "Map";
+    values[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37};
+    texts[] = {
+        "Random",
+        "Agios Konstantinos (Medium)",
+        "Kore (Small)",
+        "Alikampos (Small)",
+        "Neri (Medium)",
+        "Panochori (Small)",
+        "Gravia (Small)",
+        "Lakka (Small)",
+        "Neochori (Medium)",
+        "Katalaki (Small)",
+        "Poliakko (Medium)",
+        "Therisa (Small)",
+        "Chalkeia (Small)",
+        "Feres (Small)",
+        "Panagia (Small)",
+        "Dorida (Small)",
+        "Charkia (Medium)",
+        "Anthrakia (Small)",
+        "Rodopoli (Small)",
+        "Sofia (Small)",
+        "Molos (Small)",
+        "Kavala (Large)",
+        "Zaros (Medium)",
+        "Athira (Medium)",
+        "Pyrgos (Medium)",
+        "Syrta (Small)",
+        "Agios Dionysios (Medium)",
+        "Galati (Small)",
+        "Negades (Small)",
+        "Telos (Medium)",
+        "Frini (Small)",
+        "Abdera (Small)",
+        "Oreokastro (Small)",
+        "Stavros (Small)",
+        "Paros (Small)",
+        "Selakano (Small)",
+        "Altis (Huge)",
+        "Mid-East Altis (Huge)"
+    };
+    default = 0;
+};

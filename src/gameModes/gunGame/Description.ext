@@ -1,0 +1,40 @@
+#include "GG\config\notifications.hpp"
+#include "GG\config\params.hpp"
+#include "GG\config\defines.hpp"
+#include "GG\config\dialog.hpp"
+
+enableDebugConsole = 1;
+author = "Dschitarre";
+onLoadName = "Gungame";
+onLoadMission = "";
+
+class Header {
+    gameType = DM;
+};
+
+class CfgDebriefing {
+    class pease_reenter {
+        title = "please reenter from the lobby";
+        description = "This is necessary to work arount a bug in Arma 3. It can happen several times in a row.";
+    };
+};
+
+minPlayers = 1;
+maxPlayers = 46;
+
+briefing = 0;
+debriefing = 0;
+saving = 0;
+respawn = 3;
+respawnDelay = 4;
+respawnDialog = 0;
+respawnOnStart = 0;
+respawnButton = 0;
+ReviveMode = 0;
+disabledAI = 0;
+aikills = 1;
+joinUnassigned = 0;
+enableTeamSwitch = 1;
+HostDoesNotSkipLobby = 1;
+corpseManagerMode = 0;
+wreckManagerMode = 0;

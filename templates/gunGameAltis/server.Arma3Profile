@@ -1,0 +1,38 @@
+class DifficultyPresets
+{
+	class CustomDifficulty
+	{
+		class Options
+		{
+			groupIndicators=1;
+			friendlyTags=0;
+			enemyTags=0;
+			detectedMines=0;
+			commands=2;
+			waypoints=2;
+			weaponInfo=2;
+			stanceIndicator=2;
+			reducedDamage=0;
+			staminaBar=0;
+			weaponCrosshair=0;
+			visionAid=0;
+			thirdPersonView=1;
+			cameraShake=1;
+			scoreTable=1;
+			deathMessages=0;
+			vonID=1;
+			mapContentFriendly=1;
+			mapContentEnemy=0;
+			mapContentMines=0;
+			autoReport=0;
+			multipleSaves=0;
+			tacticalPing=1;
+		};
+		aiLevelPreset=1;
+	};
+	class CustomAILevel
+	{
+		skillAI=1;
+		precisionAI=0.8;
+	};
+};

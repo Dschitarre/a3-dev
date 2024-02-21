@@ -1,0 +1,45 @@
+#include "TDM\maps\mapData.hpp"
+#include "TDM\config\defines.hpp"
+#include "TDM\config\dialog.hpp"
+#include "TDM\config\itemConfig.hpp"
+#include "TDM\config\notifications.hpp"
+#include "TDM\config\debriefing.hpp"
+#include "LARs\override_VA_templates\settings.hpp"
+
+class Params {
+    #include "TDM\config\params.hpp"
+    #include "TDM\maps\mapName.hpp"
+};
+
+class CfgFunctions {
+    #include "LARs\override_VA_templates\functions\functions.hpp"
+};
+
+enableDebugConsole = 1;
+author = "Dschitarre";
+onLoadName = "Team Deathmatch";
+onLoadMission = "";
+
+minPlayers = 1;
+maxPlayers = 16;
+
+class Header {
+    gameType = TDM;
+};
+
+briefing = 0;
+debriefing = 0;
+saving = 0;
+respawn = 3;
+respawnDelay = 4;
+respawnDialog = 0;
+respawnOnStart = 0;
+respawnButton = 0;
+ReviveMode = 0;
+disabledAI = 0;
+aiKills = 1;
+joinUnassigned = 0;
+enableTeamSwitch = 0;
+HostDoesNotSkipLobby = 1;
+corpseManagerMode = 0;
+wreckManagerMode = 0;

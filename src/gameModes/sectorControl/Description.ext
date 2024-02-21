@@ -1,0 +1,56 @@
+#include "SC\gui\guiDefines.hpp"
+#include "SC\gui\infoDialog.hpp"
+#include "SC\gui\settingsDialog.hpp"
+#include "SC\gui\loadoutDialog.hpp"
+#include "SC\gui\perkDialog.hpp"
+#include "SC\maps\mapData.hpp"
+#include "SC\gameMode\client\debriefings.hpp"
+#include "SC\gameMode\client\notifications.hpp"
+#include "SC\rankSystem\itemConfig.hpp"
+#include "SC\rankSystem\vehicleConfig.hpp"
+#include "VA\override_VA_templates\settings.hpp"
+#include "AIS\Effects\BarDlg.hpp"
+
+class CfgFunctions {
+    #include "VA\override_VA_templates\functions\functions.hpp"
+    #include "AIS\cfgFunctions.hpp"
+};
+
+class Params {
+    #include "SC\gameMode\params.hpp"
+    #include "SC\maps\mapName.hpp"
+};
+
+class RscTitles {
+    #include "SC\gui\guiDisplay.hpp"
+    #include "AIS\Effects\BarDlgRsc.hpp"
+};
+
+enableDebugConsole = 1;
+author = "Dschitarre";
+onLoadName = "Sector Control";
+onLoadMission = "";
+
+class Header {
+    gameType = SC;
+};
+
+minPlayers = 1;
+maxPlayers = 150;
+
+briefing = 0;
+debriefing = 0;
+saving = 0;
+respawn = 3;
+respawnDelay = 10;
+respawnDialog = 0;
+respawnOnStart = 0;
+respawnButton = 1;
+respawnTemplates[] = {"MenuPosition"};
+disabledAI = 0;
+aikills = 1;
+joinUnassigned = 0;
+enableTeamSwitch = 0;
+HostDoesNotSkipLobby = 1;
+corpseManagerMode = 0;
+wreckManagerMode = 0;

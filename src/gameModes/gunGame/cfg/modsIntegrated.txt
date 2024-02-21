@@ -1,0 +1,8 @@
+allowdamageglobal
+killfeed
+dynamicweather
+disablestamina
+disabletacticalview
+holster
+jump
+autoheal
