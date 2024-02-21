@@ -1,0 +1,10 @@
+allowdamageglobal
+killfeed
+dynamicweather
+tdicons
+disablestamina
+disabletacticalview
+holster
+jump
+killfeed
+mapmarker
