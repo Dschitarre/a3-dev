@@ -84,7 +84,9 @@ SC_fnc_actionStr = '
 ';
 
 SC_fnc_isNight = {
-    (dayTime < 4.5) || {dayTime > 19.5}
+    _offset = [4, 5.666] select (worldName == "Tanoa");
+
+    (dayTime < _offset) || {dayTime > (24 - _offset)}
 };
 
 SC_fnc_onInventoryOpened = {

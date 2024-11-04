@@ -209,7 +209,10 @@ KF_fnc_addDeathFeed = {
             _oldSound = soundVolume;
 
             if KF_var_DeathTransition then {
-                cutText ["", "BLACK OUT", 1, true];
+                if (!visibleMap) then {
+                    cutText ["", "BLACK OUT", 1, true];
+                };
+                
                 1 fadesound 0;
             };
             

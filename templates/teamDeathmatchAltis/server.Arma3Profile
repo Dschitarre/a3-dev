@@ -28,7 +28,7 @@ class DifficultyPresets
             multipleSaves=0;
             tacticalPing=1;
         };
-        aiLevelPreset=1;
+        aiLevelPreset=3;
     };
     class CustomAILevel
     {

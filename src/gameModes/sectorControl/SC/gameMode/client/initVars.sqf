@@ -1,9 +1,12 @@
 SC_var_playerUid = call (compile (getplayerUid player));
 SC_var_xpRanks = [3000];
 for "_i" from 2 to 1000 do {
-    SC_var_xpRanks pushBack (1000 * (floor ((1000 + (2000 * (1.4 ^ (0.2 * _i)))) / 1000)));
+    SC_var_xpRanks pushBack (1000 * (floor ((1000 + (2000 * (1.05 ^ _i))) / 1000)));
 };
 SC_var_xpRanks pushBack 0;
+
+SC_var_rf_active = isClass (configFile >> "CfgWeapons" >> "SMG_01_black_RF");
+SC_var_lxws_active = isClass (configFile >> "CfgWeapons" >> "arifle_Velko_lxWS");
 
 SC_var_perkConfig = [
     ["Experience", "EXPR", 1],
@@ -129,9 +132,61 @@ player setVariable ["SC_var_xp", _xp];
 profileNamespace setVariable ["SC_var_rank", _rank];
 profileNamespace setVariable ["SC_var_xp", _xp];
 
-SC_var_lastLoadout = profileNamespace getVariable ["SC_var_lastLoadout", +SC_var_baseLoadout];
-SC_var_perks = profileNamespace getVariable ["SC_var_lastPerks", ["EXPR"]];
-SC_var_lastLoadoutInfo = profileNamespace getVariable ["SC_var_lastLoadoutInfo", +SC_var_baseLoadoutInfo];
+try {
+    
+    _lastLoadout = profileNamespace getVariable ["SC_var_lastLoadout", []];
+    if (
+        !(_lastLoadout isEqualType []) ||
+        {(_lastLoadout findIf {
+            !(_x isEqualType []) ||
+            {(count _x) != 2} ||
+            {!((_x select 0) isEqualType "")} ||
+            {!((_x select 1) isEqualType [])}
+        }) != -1}
+    ) then {
+        profileNamespace setVariable ["SC_var_lastLoadout", +SC_var_baseLoadout];
+        throw "";
+    };
+    _pos = _lastLoadout findIf {(_x select 0) == SC_var_currentWorldGroup};
+    SC_var_lastLoadout = if (_pos != -1) then {(_lastLoadout select _pos) select 1} else {+SC_var_baseLoadout};
+
+    _lastLoadoutInfo = profileNamespace getVariable ["SC_var_lastLoadoutInfo", []];
+    if (
+        !(_lastLoadoutInfo isEqualType []) ||
+        {(_lastLoadoutInfo findIf {
+            !(_x isEqualType []) ||
+            {(count _x) != 2} ||
+            {!((_x select 0) isEqualType "")} ||
+            {!((_x select 1) isEqualType [])}
+        }) != -1}
+    ) then {
+        profileNamespace setVariable ["SC_var_lastLoadoutInfo", +SC_var_baseLoadoutInfo];
+        throw "";
+    };
+    _pos = _lastLoadoutInfo findIf {(_x select 0) == SC_var_currentWorldGroup};
+    SC_var_lastLoadoutInfo = if (_pos != -1) then {(_lastLoadoutInfo select _pos) select 1} else {+SC_var_baseLoadoutInfo};
+
+    _perks = profileNamespace getVariable ["SC_var_perks", []];
+    if (
+        !(_perks isEqualType []) ||
+        {(_perks findIf {
+            !(_x isEqualType []) ||
+            {(count _x) != 2} ||
+            {!((_x select 0) isEqualType "")} ||
+            {!((_x select 1) isEqualType [])}
+        }) != -1}
+    ) then {
+        profileNamespace setVariable ["SC_var_perks", []];
+        throw "";
+    };
+    _pos = _perks findIf {(_x select 0) == SC_var_currentWorldGroup};
+    SC_var_perks = if (_pos != -1) then {(_perks select _pos) select 1} else {["EXPR"]};
+} catch {
+    SC_var_lastLoadout = +SC_var_baseLoadout;
+    SC_var_lastLoadoutInfo = +SC_var_baseLoadoutInfo;
+    SC_var_perks = ["EXPR"];
+};
+
 call SC_fnc_saveLoadoutToProfile;
 
 player setVariable ["SC_var_hasExprPerk", ("EXPR" in SC_var_perks), true];

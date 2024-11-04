@@ -3,10 +3,14 @@ MM_var_remoteExecId = "";
 MM_fnc_broadcastUnitPosAndDirLoopScript = scriptNull;
 MM_var_entities = [];
 
-_centerPos = getArray (configfile >> "CfgWorlds" >> worldname >> "centerPosition");
+_mapSizeConfig = configFile >> "CfgWorlds" >> worldName >> "mapSize";
 
-MM_var_mapScaleFactor = 0.00035 * (getNumber (configFile >> "CfgWorlds" >> worldName >> "mapSize"));
-publicVariable "MM_var_mapScaleFactor";
+if (isNull _mapSizeConfig) then {
+    _centerPos = getArray (configfile >> "CfgWorlds" >> worldname >> "centerPosition");
+    MM_var_mapScaleFactor = 0.0000001 * (_centerPos select 0) * (_centerPos select 1);
+} else {
+    MM_var_mapScaleFactor = 0.00035 * (getNumber (configFile >> "CfgWorlds" >> worldName >> "mapSize"));
+};
 
 MM_var_serverPosUpdateIntervalTarget = 0.1;
 MM_var_ShowAllSides = false;
@@ -16,6 +20,7 @@ MM_var_showUnitNamesOnlyOnHover = false;
 MM_var_showAliveGroupUnits = true;
 MM_var_restrictUnitIcons = false;
 
+publicVariable "MM_var_mapScaleFactor";
 publicVariable "MM_var_ShowAllSides";
 publicVariable "MM_var_ShowAllSidesOnSpectator";
 publicVariable "MM_var_showUnitNames";

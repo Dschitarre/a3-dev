@@ -37,7 +37,9 @@ DW_fnc_setDefaultSettings = {
 call DW_fnc_setDefaultSettings;
 
 DW_fnc_isNight = {
-    (dayTime < 3.75) || {dayTime > 20.25}
+    _offset = [4, 5.666] select (worldName == "Tanoa");
+
+    (dayTime < _offset) || {dayTime > (24 - _offset)}
 };
 
 DW_fnc_updateTimeMultiplier = {

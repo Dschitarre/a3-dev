@@ -4,38 +4,56 @@ SC_fnc_getItemsForUnit = {
     _excludeGeneralPrimWeapons = _excludeGeneralPrimWeapons && {!((["MGNR", "MRKS", "GRND"] arrayIntersect _perks) isEqualTo [])};
 
     _items = (getArray (missionConfigFile >> "general")) select {
-        ((_x select 1) <= _rank) && {
-        (!_excludeGeneralPrimWeapons) || {
+        ((_x select 1) <= _rank) && 
+        {_x call SC_fnc_isConfigEntryValid} &&
+        {(!_excludeGeneralPrimWeapons) || {
             ([_x select 0] call BIS_fnc_itemType) params ["_category", "_tpye"];
             ((_category != "Weapon") || {_tpye == "Handgun"})
         }}
     };
     
-    _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "General"))) select {(_x select 1) <= _rank});
+    _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "General"))) select {
+        ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+    });
 
     if ("ARMR" in _perks) then {
-        _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "Armor"))) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "Armor"))) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("LNCR" in _perks) then {
-        _items append ((getArray (missionConfigFile >> "Launcher")) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> "Launcher")) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("MRKS" in _perks) then {
-        _items append ((getArray (missionConfigFile >> "marksman")) select {(_x select 1) <= _rank});
-        _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "Marksman"))) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> "marksman")) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
+
+        _items append ((getArray (missionConfigFile >> ((toLower (str _side)) + "Marksman"))) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("MGNR" in _perks) then {
-        _items append ((getArray (missionConfigFile >> "machinegunner")) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> "machinegunner")) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("GRND" in _perks) then {
-        _items append ((getArray (missionConfigFile >> "grenadier")) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> "grenadier")) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("SUPR" in _perks) then {
-        _items append ((getArray (missionConfigFile >> "suppressor")) select {(_x select 1) <= _rank});
+        _items append ((getArray (missionConfigFile >> "suppressor")) select {
+            ((_x select 1) <= _rank) && {_x call SC_fnc_isConfigEntryValid}
+        });
     };
 
     if ("MEDC" in _perks) then {

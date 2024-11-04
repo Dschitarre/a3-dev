@@ -10,7 +10,7 @@ SC_var_suspendedUnitsGuer = playableUnits select {(side _x) == independent};
 
         _x setVariable ["SC_var_groupUnits", [_x], true];
         _x setVariable ["SC_var_unitId", _forEachIndex];
-        _x setVariable ["SC_var_aiSkill", 0.6 + random 0.3];
+        _x setVariable ["SC_var_aiSkill", 0.7 + random 0.3];
         _x setVariable ["ais_side", _side, true];
 
         _cutoff = ceil ((random 1) * 35);

@@ -892,6 +892,7 @@ KF_fnc_EntityKilled = {
 
     if (
         ([_unit] call KF_fnc_unitIsValid) &&
+        {time - (_unit getVariable ["KF_var_initTime", time]) > 2} &&
         {
             KF_var_handleUnitDeaths ||
             {!(_unit isKindOf "CAManBase")} ||
@@ -978,7 +979,8 @@ KF_fnc_EntityInitServer = {
                 ["KF_var_name", ([_entity] call KF_fnc_getName), true],
                 ["KF_var_side", (side (group _entity))],
                 ["KF_var_killsInARow", 0],
-                ["KF_var_calledKilled", false]
+                ["KF_var_calledKilled", false],
+                ["KF_var_initTime", time]
             ];
         };
 

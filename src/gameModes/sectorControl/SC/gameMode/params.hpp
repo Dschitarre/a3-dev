@@ -46,3 +46,9 @@ class sectorCapturedMessages {
     texts[] = {"Disabled", "Notification", "Systemchat"};
     default = 0;
 };
+class thermalVision {
+    title = "Thermal Vision";
+    values[] = {0, 1};
+    texts[] = {"Disabled", "Enabled"};
+    default = 1;
+};
