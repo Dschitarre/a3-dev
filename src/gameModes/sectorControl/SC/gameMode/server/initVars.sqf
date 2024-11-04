@@ -2,6 +2,9 @@ SC_var_sides = [west, east, independent];
 publicVariable "SC_var_sides";
 SC_var_GroundWeaponHolders = [];
 
+SC_var_rf_active = isClass (configFile >> "CfgWeapons" >> "SMG_01_black_RF");
+SC_var_lxws_active = isClass (configFile >> "CfgWeapons" >> "arifle_Velko_lxWS");
+
 SC_var_rankForPerkId = [nil, 1, 6, 18, 35, 67, 100];
 publicVariable "SC_var_rankForPerkId";
 
@@ -88,11 +91,9 @@ SC_var_mapZoomFactor = switch worldName do {
     case "Malden": {1.3};
     case "Altis": {0.5};
     case "Stratis": {2};
+    default {1};
 };
 publicVariable "SC_var_mapZoomFactor";
-
-SC_var_ticketGainFactor = 0.02 max (60 / (sqrt SC_var_mapArea));
-SC_var_wantedUnitAmount = 50 min (round (0.052 * (SC_var_mapArea ^ 0.4)));
 
 {
     _sector = _x;
@@ -106,11 +107,21 @@ publicVariable "SC_var_parachuteJumpHeight";
 SC_var_mapSize = switch (true) do {
     case (SC_var_mapArea < 700000): {"Small"};
     case (SC_var_mapArea < 2000000): {"Medium"};
-    case (SC_var_mapArea < 10000000): {"Large"};
+    case (SC_var_mapArea < 15000000): {"Large"};
     default {"Huge"};
 };
 SC_var_hugeMap = SC_var_mapSize == "Huge";
 publicVariable "SC_var_hugeMap";
+
+SC_var_ticketGainFactor = 0.02 max (60 / (sqrt SC_var_mapArea));
+SC_var_wantedUnitAmount = ([30, 50] select SC_var_hugeMap) min (round (0.052 * (SC_var_mapArea ^ 0.4)));
+
+SC_var_playZoneMiddle = [0, 0, 0];
+{
+    SC_var_playZoneMiddle = SC_var_playZoneMiddle vectorAdd (getMarkerPos ("SC_var_sector" + _x));
+} forEach SC_var_sectors;
+SC_var_playZoneMiddle = SC_var_playZoneMiddle vectorMultiply (1 / (count SC_var_sectors));
+publicVariable "SC_var_playZoneMiddle";
 
 SC_var_maxDistanceToUseableGroundVehicle = switch SC_var_mapSize do {
     case "Small": {10};
@@ -217,10 +228,10 @@ DW_var_timeBetweenWeatherChangesMultiplierSunny = switch SC_var_mapSize do {
 };
 
 DW_var_timeBetweenWeatherChangesMultiplierStormy = switch SC_var_mapSize do {
-    case "Small": {0.3};
-    case "Medium": {0.45};
-    case "Large": {0.6};
-    case "Huge": {0.6};
+    case "Small": {0.1};
+    case "Medium": {0.15};
+    case "Large": {0.2};
+    case "Huge": {0.2};
 };
 
 SC_var_wantedVehicleAmount = if (SC_var_mapSize == "Huge") then {
@@ -273,14 +284,14 @@ switch ((getArray (missionConfigFile >> "params" >> "weather" >> "texts")) selec
 
 DW_var_date = [2035, 07, 01] + (
     switch ((getArray (missionConfigFile >> "params" >> "startTime" >> "texts")) select ("startTime" call BIS_fnc_getParamValue)) do {
-        case "Morning": {[6, 00]};
+        case "Morning": {[[6, 00], [8, 00]] select (worldName == "Tanoa")};
         case "Noon": {[12, 00]};
         case "Evening": {[18, 00]};
         case "Night": {[1, 00]};
     }
 );
 
-SC_var_availableVehicles = (getArray (missionConfigFile >> "vehicles")) select {
+SC_var_availableVehicles = ((getArray (missionConfigFile >> "vehicles")) call SC_fnc_filterConfigArr) select {
     _x params ["_type", "_rank"];
     
     (_rank <= SC_var_maxVehicleRank) &&
@@ -314,7 +325,7 @@ _ranks = [];
             _NvGoggless pushBack _x;
             _ranks pushBackUnique (_x select 1);
         };
-    } forEach ((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Marksman"))));
+    } forEach (((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Marksman")))) call SC_fnc_filterConfigArr);
 
     _sidesNvGoggless pushBack _NvGoggless;
 } forEach SC_var_sides;
@@ -343,7 +354,7 @@ _ranks = [];
             _uniforms pushBack _x;
             _ranks pushBackUnique (_x select 1);
         };
-    } forEach ((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Marksman"))) + (getarray (missionConfigFile >> ((str _side) + "Armor"))));
+    } forEach (((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Marksman"))) + (getarray (missionConfigFile >> ((str _side) + "Armor")))) call SC_fnc_filterConfigArr);
 
     _sidesUniforms pushBack _uniforms;
 } forEach SC_var_sides;
@@ -372,7 +383,7 @@ _ranks = [];
             _helmets pushBack _x;
             _ranks pushBackUnique (_x select 1);
         };
-    } forEach ((getarray (missionConfigFile >> "general")) + (getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Armor"))));
+    } forEach (((getarray (missionConfigFile >> "general")) + (getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Armor")))) call SC_fnc_filterConfigArr);
 
     _sidesHelmets pushBack _helmets;
 } forEach SC_var_sides;
@@ -401,7 +412,7 @@ _ranks = [];
             _vests pushBack _x;
             _ranks pushBackUnique (_x select 1);
         };
-    } forEach ((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Armor"))));
+    } forEach (((getarray (missionConfigFile >> ((str _side) + "General"))) + (getarray (missionConfigFile >> ((str _side) + "Armor")))) call SC_fnc_filterConfigArr);
 
     _sidesVests pushBack _vests;
 } forEach SC_var_sides;
@@ -430,7 +441,7 @@ _ranks = [];
             _backpacks pushBack _x;
             _ranks pushBackUnique (_x select 1);
         };
-    } forEach (getarray (missionConfigFile >> ((str _side) + "General")));
+    } forEach ((getarray (missionConfigFile >> ((str _side) + "General"))) call SC_fnc_filterConfigArr);
 
     _sidesBackpacks pushBack _backpacks;
 } forEach SC_var_sides;
@@ -446,3 +457,12 @@ SC_var_BackpacksByRank = _ranks apply {
     [_rank, _backpacksForRank]
 };
 publicVariable "SC_var_BackpacksByRank";
+
+SC_var_worldGroups = [
+    ["2035", ["Altis", "Stratis", "Malden", "Tanoa"]],
+    ["Chernarus", ["cup_chernarus_A3"]]
+];
+publicVariable "SC_var_worldGroups";
+
+SC_var_currentWorldGroup = (SC_var_worldGroups select (SC_var_worldGroups findIf {worldName in (_x select 1)})) select 0;
+publicVariable "SC_var_currentWorldGroup";

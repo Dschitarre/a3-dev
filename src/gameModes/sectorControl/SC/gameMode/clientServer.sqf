@@ -101,7 +101,7 @@ SC_fnc_zoneParachuteJump = {
             "SC_var_playZone" call BIS_fnc_randomPosTrigger
         } else {
             [
-                (getMarkerPos "SC_var_playZone"),
+                SC_var_playZoneMiddle,
                 (
                     ((markerSize "SC_var_playZone") apply {0.3 * _x}) +
                     [
@@ -115,7 +115,7 @@ SC_fnc_zoneParachuteJump = {
         !(surfaceIsWater _pos) &&
         {(
             (_enemySidesBaseMarkers + ([[], _enemySidesSectorMarkers] select SC_var_hugeMap)) findIf
-            {(_pos distance (getMarkerPos _x)) < (1.4 * (selectMax (getMarkerSize _x)))}
+            {(_pos distance (getMarkerPos _x)) < (1.2 * (selectMax (getMarkerSize _x)))}
         ) == -1}
     };
 
@@ -156,4 +156,13 @@ SC_fnc_parachuteJump = {
     {
         _unit addItemToBackpack _x;
     } forEach _backpackItems;
+};
+
+SC_fnc_isConfigEntryValid = {
+    (SC_var_lxws_active || {((toLower (_x select 0)) select [(count (_x select 0)) - 5, 5]) != "_lxws"}) &&
+    {SC_var_rf_active || {((toLower (_x select 0)) select [(count (_x select 0)) - 3, 3]) != "_rf"}}
+};
+
+SC_fnc_filterConfigArr = {
+    _this select {_x call SC_fnc_isConfigEntryValid}
 };

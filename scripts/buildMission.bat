@@ -33,6 +33,23 @@ copy /y "%gameModePath%\%gameModeTag%\maps\mapData%map%.hpp" ^
 copy /y "%gameModePath%\%gameModeTag%\maps\mapName%map%.hpp" ^
     "!missionPath!\%gameModeTag%\maps\mapName.hpp"
 copy /y "%gameModePath%\missionFiles\mission%map%.sqm" "!missionPath!\mission.sqm"
+
+if not "%gameMode%" == "sectorControl" goto skipConfig
+
+set mapGroup=%map%
+if "%map%" == "Altis" set mapGroup=2035
+if "%map%" == "Stratis" set mapGroup=2035
+if "%map%" == "Malden" set mapGroup=2035
+if "%map%" == "Tanoa" set mapGroup=2035
+
+copy /y "%gameModePath%\SC\rankSystem\itemConfig%mapGroup%.hpp" "!missionPath!\SC\rankSystem\tmp_itemConfig.hpp"
+copy /y "%gameModePath%\SC\rankSystem\vehicleConfig%mapGroup%.hpp" "!missionPath!\SC\rankSystem\tmp_vehicleConfig.hpp"
+del /q /s "!missionPath!\SC\rankSystem\itemConfig*.hpp"
+del /q /s "!missionPath!\SC\rankSystem\vehicleConfig*.hpp"
+ren "!missionPath!\SC\rankSystem\tmp_itemConfig.hpp" itemConfig.hpp
+ren "!missionPath!\SC\rankSystem\tmp_vehicleConfig.hpp" vehicleConfig.hpp
+
+:skipConfig
 mkdir "!missionPath!\modsIntegrated"
 
 for /f %%m in (modsIntegrated.txt) do (

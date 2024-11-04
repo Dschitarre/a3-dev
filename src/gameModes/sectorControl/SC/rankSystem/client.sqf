@@ -1,3 +1,9 @@
+SC_fnc_worldNamesFromWorldGroup = {
+    params ["_worldGroup"];
+
+    (SC_var_worldGroups select (SC_var_worldGroups findIf {(_x select 0) == _worldGroup})) select 1
+};
+
 SC_fnc_setLoadout = {
     params ["_loadout"];
 
@@ -100,11 +106,10 @@ SC_fnc_changePerks = {
         if !((headgear player) in _items) then {removeHeadgear player};
         if !((goggles player) in _items) then {removeGoggles player};
         if !((hmd player) in _items) then {player unlinkItem (hmd player)};
-
-        player setUnitTrait ["Medic", ("MEDC" in _newPerks)];
-        player setVariable ["SC_var_hasExprPerk", ("EXPR" in _newPerks), true];
     };
-
+    
+    player setUnitTrait ["Medic", ("MEDC" in _newPerks)];
+    player setVariable ["SC_var_hasExprPerk", ("EXPR" in _newPerks), true];
     _itemsPlayer = items player;
 
     if ("MEDC" in SC_var_perks) then {
@@ -136,7 +141,7 @@ SC_fnc_changePerks = {
 
 SC_fnc_isLoadoutValid = {
     _allowedItems = [];
-    {_allowedItems append _x;} forEach ([(side (group player)), SC_var_perks, (player getVariable "SC_var_rank")] call SC_fnc_getItems);
+    {{_allowedItems pushBack (toLower _x);} forEach _x;} forEach ([(side (group player)), SC_var_perks, (player getVariable "SC_var_rank")] call SC_fnc_getItems);
 
     (
         (
@@ -154,7 +159,7 @@ SC_fnc_isLoadoutValid = {
                 (hmd player),
                 (binocular player)
             ]
-        ) findIf {(_x != "") && {!(_x in _allowedItems)}}
+        ) findIf {(_x != "") && {!((toLower _x) in _allowedItems)}}
     ) == -1
 };
 
@@ -296,9 +301,21 @@ SC_fnc_rankSystemLoop = {
 };
 
 SC_fnc_saveLoadoutToProfile = {
-    profileNamespace setVariable ["SC_var_lastLoadout", +SC_var_lastLoadout];
-    profileNamespace setVariable ["SC_var_lastPerks", +SC_var_perks];
-    profileNamespace setVariable ["SC_var_lastLoadoutInfo", +SC_var_lastLoadoutInfo];
+    _lastLoadout = profileNamespace getVariable ["SC_var_lastLoadout", []];
+    _lastLoadout deleteAt (_lastLoadout findIf {(_x select 0) == SC_var_currentWorldGroup});
+    _lastLoadout pushBack [SC_var_currentWorldGroup, +SC_var_lastLoadout];
+    profileNamespace setVariable ["SC_var_lastLoadout", _lastLoadout];
+
+    _lastLoadoutInfo = profileNamespace getVariable ["SC_var_lastLoadoutInfo", []];
+    _lastLoadoutInfo deleteAt (_lastLoadoutInfo findIf {(_x select 0) == SC_var_currentWorldGroup});
+    _lastLoadoutInfo pushBack [SC_var_currentWorldGroup, +SC_var_lastLoadoutInfo];
+    profileNamespace setVariable ["SC_var_lastLoadoutInfo", _lastLoadoutInfo];
+
+    _perks = profileNamespace getVariable ["SC_var_perks", []];
+    _perks deleteAt (_perks findIf {(_x select 0) == SC_var_currentWorldGroup});
+    _perks pushBack [SC_var_currentWorldGroup, +SC_var_perks];
+    profileNamespace setVariable ["SC_var_perks", _perks];
+
     saveProfileNamespace;
 };
 

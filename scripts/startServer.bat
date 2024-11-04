@@ -6,6 +6,7 @@ if "%template%"=="" exit
 cd /d %~dp0\..
 set basePath=%cd%
 set serverConfigPath="%basePath%\templates\%template%"
+set workshopBasePath=C:\Program Files (x86)\Steam\steamapps\workshop\content\107410
 cd "%basePath%\cfg"
 set /p serverPath=<serverPath.txt
 set /p keyName=<keyName.txt
@@ -20,9 +21,9 @@ set /p gameMode=<gameMode.txt
 set /p port=<port.txt
 set mods=
 set serverMods=
-for /f %%i in (serverMods.txt) do call :concatServerMods %%i
-for /f %%i in (mods.txt) do call :concatMods %%i
-for /f %%i in (modsOfficial.txt) do call :concatModsOfficial %%i
+for /f "usebackq tokens=*" %%i in (serverMods.txt) do call :concatServerMods "%%i"
+for /f "usebackq tokens=*" %%i in (mods.txt) do call :concatMods "%%i"
+for /f "usebackq tokens=*" %%i in (modsOfficial.txt) do call :concatModsOfficial "%%i"
 set serverMods=%serverMods:~0,-1%
 set mods=%mods:~0,-1%
 set autoInit=
@@ -57,15 +58,15 @@ start arma3server_x64.exe ^
 goto :end
 
 :concatMods
-set mods=%mods%%basePath%\build\mods\%1;
+set mods=%mods%%workshopBasePath%\%~1;
 goto :eof
 
 :concatServerMods
-set serverMods=%serverMods%%basePath%\build\mods\%1;
+set serverMods=%serverMods%%basePath%\build\mods\%~1;
 goto :eof
 
 :concatModsOfficial
-set mods=%mods%%1;
+set mods=%mods%%~1;
 goto :eof
 
 :end

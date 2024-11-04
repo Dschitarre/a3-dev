@@ -1,8 +1,7 @@
 SC_fnc_setGrassViewDistance = {
     params ["_factor"];
 
-    _terrainGrid = 6.25 / (1 + (9 * _factor));
-    setTerrainGrid _terrainGrid;
+    setTerrainGrid (6.25 / (1 + (([3, 9] select (SC_var_currentWorldGroup == "2035")) * _factor)));
     profileNameSpace setVariable ["SC_var_currentGrassViewDistanceFactor", _factor];
     saveProfileNamespace;
 };

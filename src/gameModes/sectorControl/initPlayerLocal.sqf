@@ -132,13 +132,16 @@ waitUntil {!(isNil "SC_var_serverInitDone")};
             SC_var_lastView = if SC_var_viewSwitchable then {profileNameSpace getVariable ["SC_var_lastView", "EXTERNAL"]} else {"INTERNAL"};
         };
 
+        if (((getArray (missionConfigFile >> "params" >> "thermalVision" >> "texts")) select ("thermalVision" call BIS_fnc_getParamValue)) == "Disabled") then {
+            SC_var_disableThermalLoopScript = [] spawn SC_fnc_disableThermalLoop;
+        };
+
         SC_var_ranksystemLoopScript = [] spawn SC_fnc_rankSystemLoop;
         SC_var_inventoryDisabledCooldownLoopScript = [] spawn SC_fnc_inventoryDisabledCooldownLoop;
         SC_var_respawnPositionsLoopScript = [] spawn SC_fnc_respawnPositionsLoop;
         SC_var_spectatorMapDrawEHLoopScript = [] spawn SC_fnc_spectatorMapDrawEHLoop;
         SC_var_cameraMapDrawEHLoopScript = [] spawn SC_fnc_cameraMapDrawEHLoop;
         SC_var_uavTerminalLoopScript = [] spawn SC_fnc_uavTerminalLoop;
-        SC_var_disableThermalLoopScript = [] spawn SC_fnc_disableThermalLoop;
         SC_var_spectatorNightVisionLoopScript = [] spawn SC_fnc_spectatorNightVisionLoop;
         SC_var_cameraNightVisionLoopScript = [] spawn SC_fnc_cameraNightVisionLoop;
         SC_var_staminaSystemLoopScript = [] spawn SC_fnc_staminaSystemLoop;

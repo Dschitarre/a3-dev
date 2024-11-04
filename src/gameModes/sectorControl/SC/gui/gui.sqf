@@ -115,9 +115,13 @@ SC_fnc_getLoadoutName = {
 SC_fnc_setupLoadoutDialog = {
     _loadoutDialog = uiNamespace getVariable "SC_var_loadoutDialog";
     _combo = _loadoutDialog displayCtrl 2100;
-
+    
     {
-        _combo lbAdd (_x call SC_fnc_getLoadoutName);
+        _x params ["", "", "", ["_worldGroup", "2035"]];
+
+        if (_worldGroup == SC_var_currentWorldGroup) then {
+            _combo lbAdd (_x call SC_fnc_getLoadoutName);
+        };
     } forEach (profileNameSpace getVariable ["SC_var_storedLoadouts", []]);
 
     _combo lbAdd "New Loadout";
@@ -134,7 +138,7 @@ SC_fnc_storeLoadout = {
     _combo = _loadoutDialog displayCtrl 2100;
     _numLoadouts = (lbSize _combo) - 1;
     _idxToStore = lbCurSel _combo;
-    _newLoadout = [(getUnitLoadout player), +SC_var_perks, (call SC_fnc_getLoadoutInfo)];
+    _newLoadout = [(getUnitLoadout player), +SC_var_perks, (call SC_fnc_getLoadoutInfo), SC_var_currentWorldGroup];
     _newLoadouts = profileNameSpace getVariable ["SC_var_storedLoadouts", []];
 
     if (_idxToStore == _numLoadouts) then {
@@ -183,16 +187,25 @@ SC_fnc_loadLoadout = {
 SC_fnc_deleteLoadout = {
     _loadoutDialog = uiNamespace getVariable "SC_var_loadoutDialog";
     _combo = _loadoutDialog displayCtrl 2100;
-    _idxToDelete = lbCurSel _combo;
+    
+    _allLoadouts = profileNameSpace getVariable ["SC_var_storedLoadouts", []];
+    _worldGroupsLoadouts = _allLoadouts select {
+        _x params ["", "", "", ["_worldGroup", "2035"]];
 
-    _newLoadouts = profileNameSpace getVariable ["SC_var_storedLoadouts", []];
-    _newLoadouts deleteAt _idxToDelete;
-    profileNameSpace setVariable ["SC_var_storedLoadouts", _newLoadouts];
+        (_worldGroup == SC_var_currentWorldGroup)
+    };
+    _otherLoadouts = _allLoadouts - _worldGroupsLoadouts;
+
+    _numLoadouts = (lbSize _combo) - 1;
+    _idxToDelete = lbCurSel _combo;
+    if ((_numLoadouts == 0) || {_idxToDelete == _numLoadouts}) exitWith {};
+    _worldGroupsLoadouts deleteAt _idxToDelete;
+    _allLoadouts = _otherLoadouts + _worldGroupsLoadouts;
+    profileNameSpace setVariable ["SC_var_storedLoadouts", +_allLoadouts];
     saveProfileNameSpace;
 
     _combo lbDelete _idxToDelete;
-    _numLoadouts = (lbSize _combo) - 1;
-    _combo lbSetCurSel _numLoadouts;
+    _combo lbSetCurSel (_numLoadouts - 1);
 };
 
 SC_fnc_getPerkFromPerkAbbrev = {

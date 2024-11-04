@@ -168,42 +168,42 @@ publicVariable "SC_var_planeSpawnIds";
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([(getarray (missionConfigFile >> "general")) + (getarray (missionConfigFile >> ((str (side (group player))) + "General"))), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([((getarray (missionConfigFile >> "general")) + (getarray (missionConfigFile >> ((str (side (group player))) + "General")))) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
                         
                         lbAdd [1500, ""];
                         lbAdd [1500, "Marksman [MRKS] Perk:"];
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([(getarray (missionConfigFile >> "marksman")) + (getarray (missionConfigFile >> ((str (side (group player))) + "Marksman"))), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([((getarray (missionConfigFile >> "marksman")) + (getarray (missionConfigFile >> ((str (side (group player))) + "Marksman")))) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
 
                         lbAdd [1500, ""];
                         lbAdd [1500, "Machinegunner [MGNR] Perk:"];
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([getarray (missionConfigFile >> "machinegunner"), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([(getarray (missionConfigFile >> "machinegunner")) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
 
                         lbAdd [1500, ""];
                         lbAdd [1500, "Grenadier [GRND] Perk:"];
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([getarray (missionConfigFile >> "grenadier"), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([(getarray (missionConfigFile >> "grenadier")) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
 
                         lbAdd [1500, ""];
                         lbAdd [1500, "Launcher [LNCR] Perk:"];
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([(getarray (missionConfigFile >> "launcher")), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([(getarray (missionConfigFile >> "launcher")) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
 
                         lbAdd [1500, ""];
                         lbAdd [1500, "Armor [ARMR] Perk:"];
                         {
                             _x params ["_type", "_rank"];
                             lbAdd [1500, ("Rank " + str _rank + ": " + ([_type] call SC_fnc_getDisplayName))];
-                        } forEach ([getarray (missionConfigFile >> ((str (side (group player))) + "Armor")), [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
+                        } forEach ([(getarray (missionConfigFile >> ((str (side (group player))) + "Armor"))) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy);
                     };
                 },
                 [_text0, _text1], 1.5, true, false, "", "", 3

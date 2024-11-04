@@ -217,7 +217,7 @@ KF_fnc_HitPart = {
             _pos = _projectiles findIf (if ("Bomb" in _ammo) then {
                 {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {"Bomb" in (_x select 3)}};
             } else {
-               {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {(_ammo in (_x select 3)) || {(_x select 3) in _ammo}}};
+                {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {(_ammo in (_x select 3)) || {(_x select 3) in _ammo} || {((_x select 3) select [0,5]) == (_ammo select [0,5])}}};
             });
 
             if (_pos != -1) then {
