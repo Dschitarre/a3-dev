@@ -1,0 +1,15 @@
+[h2]Dynamic Weather[/h2]
+Changes cloud cover, rain, fog and wind during the mission. The server synchronizes transitions with connected clients. Weather alternates between periods of change and periods where conditions hold steady.
+
+[h2]Weather and time[/h2]
+[list]
+[*]Choose Custom, Dynamic, Dynamic (foggy), Sunny, Cloudy, Stormy or Rainy.
+[*]With Custom, set upper and lower limits for cloud cover and rain. Fog and wind each have separate ranges for sunny and stormy weather.
+[*]Set the pause between transitions separately for sunny and stormy weather. Choose four time multipliers: day and night during a transition, and day and night between transitions.
+[*]Skip to sunrise after a chosen hour, or disable night skipping. The mission announces the skip in advance. Automatic CBA startup defaults to 18:00; the Eden module defaults to 19:00.
+[/list]
+
+[h2]How to enable it[/h2]
+In Eden, place the [b]Dynamic Weather[/b] module to use it in that scenario. Enable it without an Eden module through [url=https://steamcommunity.com/sharedfiles/filedetails/?id=450814997]CBA_A3[/url]. Open [b]Addon Options → Dynamic Weather[/b], check [b]Enable Dynamic Weather[/b] and restart the mission. In multiplayer, use the Server tab.
+
+[url=https://github.com/Dschitarre/a3-dev/tree/master/src/mods/dynamicweather]Source code[/url]

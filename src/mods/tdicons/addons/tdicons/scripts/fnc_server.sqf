@@ -80,6 +80,10 @@ TDI_fnc_entityKilled = {
 // ---- start / stop ----
 
 TDI_fnc_startTdIconsServer = {
+    if (missionNamespace getVariable ["TDI_cba_override", false]) then {
+        call TDI_fnc_applyCbaSettings;
+    };
+
     if (TDI_var_serverRunning) exitWith {};
 
     TDI_var_serverRunning = true;

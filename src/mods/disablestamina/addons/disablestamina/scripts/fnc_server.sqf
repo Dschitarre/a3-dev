@@ -10,6 +10,10 @@ publicVariable "DS_var_weaponSwayEnabled";
 publicVariable "DS_var_weaponSwayDisabled";
 
 DS_fnc_startDisableStaminaServer = {
+    if (missionNamespace getVariable ["DS_cba_override", false]) then {
+        call DS_fnc_applyCbaSettings;
+    };
+
     if (!isMultiplayer) exitWith {
         call DS_fnc_startDisableStaminaClientServer;
     };

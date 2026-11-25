@@ -4,6 +4,10 @@
 EC_var_remoteExecId = "";
 
 EC_fnc_startEntityCullingServer = {
+    if (missionNamespace getVariable ["EC_cba_override", false]) then {
+        call EC_fnc_applyCbaSettings;
+    };
+
     if (!isMultiplayer) exitWith {
         call EC_fnc_startEntityCullingClient;
     };

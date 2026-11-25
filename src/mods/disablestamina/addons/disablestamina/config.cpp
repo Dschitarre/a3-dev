@@ -90,3 +90,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'disablestamina\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class disablestamina {
+        serverInit = "if (!isNil 'DS_fnc_startCbaAddon') then {['CBA_settingsInitialized', DS_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

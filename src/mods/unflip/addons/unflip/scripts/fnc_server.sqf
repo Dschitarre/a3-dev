@@ -105,6 +105,10 @@ UF_fnc_aiLoop = {
 
 // also publishes the settings again: a mission or the module may have changed them since the last start
 UF_fnc_startUnflipServer = {
+    if (missionNamespace getVariable ["UF_cba_override", false]) then {
+        call UF_fnc_applyCbaSettings;
+    };
+
     call UF_fnc_publishSettings;
 
     if (isNull UF_var_aiScript) then {

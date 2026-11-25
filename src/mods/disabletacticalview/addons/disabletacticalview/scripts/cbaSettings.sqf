@@ -7,7 +7,7 @@ if (!_integrated && {fileExists "modsIntegrated\disabletacticalview\scripts\cbaS
     "DTV_cba_enabled",
     "CHECKBOX",
     ["Enable Disable Tactical View", "Applies when the mission starts. A placed Eden module controls the standalone mod in its mission."],
-    ["Dschitarre", "Disable Tactical View"],
+    "Disable Tactical View",
     _integrated,
     1,
     {},
@@ -16,9 +16,9 @@ if (!_integrated && {fileExists "modsIntegrated\disabletacticalview\scripts\cbaS
 
 if (_integrated || {!isServer}) exitWith {};
 
-["CBA_settingsInitialized", {
+DTV_fnc_startCbaAddon = {
     if (DTV_cba_enabled && {(allMissionObjects "moduleDisableTacticalView") isEqualTo []}) then {
         call compile preprocessFileLineNumbers "disabletacticalview\scripts\fn_init.sqf";
         call DTV_fnc_startDisableTacticalViewServer;
     };
-}] call CBA_fnc_addEventHandler;
+};

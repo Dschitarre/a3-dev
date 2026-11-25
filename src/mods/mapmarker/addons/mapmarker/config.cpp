@@ -89,3 +89,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'mapmarker\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class mapmarker {
+        serverInit = "if (!isNil 'MM_fnc_startCbaAddon') then {['CBA_settingsInitialized', MM_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

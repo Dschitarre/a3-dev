@@ -101,6 +101,10 @@ KF_var_classInfo = createHashMap;                        // class name -> [displ
 // ---- start ----
 
 KF_fnc_startKillfeed = {
+    if (missionNamespace getVariable ["KF_cba_override", false]) then {
+        call KF_fnc_applyCbaSettings;
+    };
+
     if (KF_var_running) exitWith {};
 
     // the game modes set their client settings (e.g. the kill cam hooks) right before the start

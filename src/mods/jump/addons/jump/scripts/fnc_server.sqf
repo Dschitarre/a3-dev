@@ -6,6 +6,10 @@ J_var_jumpSpeed = 1;
 publicVariable "J_var_jumpSpeed";
 
 J_fnc_startJumpServer = {
+    if (missionNamespace getVariable ["J_cba_override", false]) then {
+        call J_fnc_applyCbaSettings;
+    };
+
     if (!isMultiplayer) exitWith {
         call J_fnc_startJumpClient;
     };

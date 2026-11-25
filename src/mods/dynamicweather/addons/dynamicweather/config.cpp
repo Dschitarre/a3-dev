@@ -300,3 +300,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'dynamicweather\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class dynamicweather {
+        serverInit = "if (!isNil 'DW_fnc_startCbaAddon') then {['CBA_settingsInitialized', DW_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

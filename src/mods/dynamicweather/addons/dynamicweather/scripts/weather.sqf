@@ -310,6 +310,10 @@ DW_fnc_dynamicWeather = {
 
 DW_fnc_startDynamicWeather = {
     params ["_setDate"];
+    if (missionNamespace getVariable ["DW_cba_override", false]) then {
+        call DW_fnc_applyCbaSettings;
+    };
+
 
     // the module, the global enabler and game modes may all call this; only one weather loop may run
     if (!scriptDone DW_var_weatherScript) exitWith {};

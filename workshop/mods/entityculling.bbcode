@@ -1,0 +1,15 @@
+[h2]Entity Culling[/h2]
+Temporarily hides supported entities that are outside the player's view or obscured by terrain or objects. They still simulate and make sound. Entities are revealed when they become visible again, and stopping the addon reveals everything it hid.
+
+[h2]Server settings[/h2]
+[list]
+[*]Frame budget (1 ms by default): how much time each client can spend on visibility tests per frame.
+[*]Protected distance (10 m): entities close to the camera or the player and their vehicle remain visible.
+[*]Check interval (0.2 s) and consecutive checks before hiding (3).
+[*]Movement look-ahead (0.5 s) and a debug overlay for hidden entities, worker time and FPS.
+[/list]
+
+[h2]How to enable it[/h2]
+In Eden, place the [b]Entity Culling[/b] module to use it in that scenario. A trigger can turn the module on and off. Enable it without an Eden module through [url=https://steamcommunity.com/sharedfiles/filedetails/?id=450814997]CBA_A3[/url]. Open [b]Addon Options → Entity Culling[/b], check [b]Enable Entity Culling[/b] and restart the mission. In multiplayer, use the Server tab.
+
+[url=https://github.com/Dschitarre/a3-dev/tree/master/src/mods/entityculling]Source code[/url]

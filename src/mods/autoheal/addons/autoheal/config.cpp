@@ -112,3 +112,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'autoheal\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class autoheal {
+        serverInit = "if (!isNil 'AH_fnc_startCbaAddon') then {['CBA_settingsInitialized', AH_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

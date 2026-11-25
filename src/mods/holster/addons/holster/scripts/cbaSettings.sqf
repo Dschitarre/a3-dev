@@ -7,7 +7,7 @@ if (!_integrated && {fileExists "modsIntegrated\holster\scripts\cbaSettings.sqf"
     "H_cba_enabled",
     "CHECKBOX",
     ["Enable Holster", "Applies when the mission starts. A placed Eden module controls the standalone mod in its mission."],
-    ["Dschitarre", "Holster"],
+    "Holster",
     _integrated,
     1,
     {},
@@ -16,9 +16,9 @@ if (!_integrated && {fileExists "modsIntegrated\holster\scripts\cbaSettings.sqf"
 
 if (_integrated || {!isServer}) exitWith {};
 
-["CBA_settingsInitialized", {
+H_fnc_startCbaAddon = {
     if (H_cba_enabled && {(allMissionObjects "moduleHolster") isEqualTo []}) then {
         call compile preprocessFileLineNumbers "holster\scripts\fn_init.sqf";
         call H_fnc_startHolsterServer;
     };
-}] call CBA_fnc_addEventHandler;
+};

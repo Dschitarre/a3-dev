@@ -12,6 +12,10 @@ if (isNil "E_var_defaultSettings") then {
 publicVariable "E_var_defaultSettings";
 
 E_fnc_startEarplugsServer = {
+    if (missionNamespace getVariable ["E_cba_override", false]) then {
+        call E_fnc_applyCbaSettings;
+    };
+
     if (!isMultiplayer) exitWith {
         call E_fnc_startEarplugsClient;
     };

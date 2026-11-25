@@ -1,6 +1,5 @@
 // This hook runs when CBA is loaded. Mission starts without CBA keep their built-in defaults.
 MODS_var_settingsReady = false;
-["CBA_settingsInitialized", {MODS_var_settingsReady = true;}] call CBA_fnc_addEventHandler;
 
 {
     private _path = format ["modsIntegrated\%1\scripts\cbaSettings.sqf", _x];

@@ -78,3 +78,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'jump\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class jump {
+        serverInit = "if (!isNil 'J_fnc_startCbaAddon') then {['CBA_settingsInitialized', J_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

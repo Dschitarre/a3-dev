@@ -204,7 +204,7 @@ KF_fnc_killCamDowned = {
 KF_fnc_killCamTrigger = {
     params ["_unit", "_killer", "_instigator"];
 
-    if (KF_var_killCamActive || {!KF_var_killCamEnabled}) exitWith {false};
+    if (KF_var_killCamActive || {!KF_var_killCamEnabled} || {!(missionNamespace getVariable ["KF_cba_showKillCam", true])}) exitWith {false};
 
     ([_unit, _killer, _instigator] call KF_fnc_killCamTarget) params [["_target", objNull], ["_person", objNull]];
 

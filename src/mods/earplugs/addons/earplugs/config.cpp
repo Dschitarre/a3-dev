@@ -101,3 +101,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'earplugs\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class earplugs {
+        serverInit = "if (!isNil 'E_fnc_startCbaAddon') then {['CBA_settingsInitialized', E_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

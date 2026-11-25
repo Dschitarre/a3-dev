@@ -56,3 +56,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'holster\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class holster {
+        serverInit = "if (!isNil 'H_fnc_startCbaAddon') then {['CBA_settingsInitialized', H_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

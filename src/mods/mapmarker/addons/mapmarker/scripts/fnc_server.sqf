@@ -293,6 +293,10 @@ MM_fnc_broadcastUnitPosAndDirLoop = {
 // ---- start / stop ----
 
 MM_fnc_startMapMarkerServer = {
+    if (missionNamespace getVariable ["MM_cba_override", false]) then {
+        call MM_fnc_applyCbaSettings;
+    };
+
     if (MM_var_serverRunning) exitWith {};
 
     MM_var_serverRunning = true;

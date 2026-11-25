@@ -153,3 +153,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'entityculling\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class entityculling {
+        serverInit = "if (!isNil 'EC_fnc_startCbaAddon') then {['CBA_settingsInitialized', EC_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

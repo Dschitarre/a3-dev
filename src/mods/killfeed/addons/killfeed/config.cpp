@@ -297,3 +297,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'killfeed\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class killfeed {
+        serverInit = "if (!isNil 'KF_fnc_startCbaAddon') then {['CBA_settingsInitialized', KF_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

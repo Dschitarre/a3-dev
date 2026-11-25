@@ -12,6 +12,10 @@ publicVariable "AH_var_healCooldownMedic";
 publicVariable "AH_var_healCooldown";
 
 AH_fnc_startAutoHealServer = {
+    if (missionNamespace getVariable ["AH_cba_override", false]) then {
+        call AH_fnc_applyCbaSettings;
+    };
+
     if (!isMultiplayer) exitWith {
         call AH_fnc_startAutoHealClientServer;
     };

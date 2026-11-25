@@ -105,3 +105,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'tdicons\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class tdicons {
+        serverInit = "if (!isNil 'TDI_fnc_startCbaAddon') then {['CBA_settingsInitialized', TDI_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

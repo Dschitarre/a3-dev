@@ -56,3 +56,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'disabletacticalview\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class disabletacticalview {
+        serverInit = "if (!isNil 'DTV_fnc_startCbaAddon') then {['CBA_settingsInitialized', DTV_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

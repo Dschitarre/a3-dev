@@ -170,3 +170,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'unflip\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class unflip {
+        serverInit = "if (!isNil 'UF_fnc_startCbaAddon') then {['CBA_settingsInitialized', UF_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};

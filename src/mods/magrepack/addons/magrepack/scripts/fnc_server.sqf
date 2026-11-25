@@ -29,6 +29,10 @@ MR_fnc_stopOnMachine = {
 
 // start of the mod (missions call it on the server after setting MR_var_*); calling it again publishes changed settings
 MR_fnc_startMagRepackServer = {
+    if (missionNamespace getVariable ["MR_cba_override", false]) then {
+        call MR_fnc_applyCbaSettings;
+    };
+
     {
         publicVariable _x;
     } forEach MR_var_settings;

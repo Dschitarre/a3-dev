@@ -108,3 +108,9 @@ class Extended_PreInit_EventHandlers {
         init = "[false] call compile preprocessFileLineNumbers 'magrepack\scripts\cbaSettings.sqf'";
     };
 };
+
+class Extended_PostInit_EventHandlers {
+    class magrepack {
+        serverInit = "if (!isNil 'MR_fnc_startCbaAddon') then {['CBA_settingsInitialized', MR_fnc_startCbaAddon] call CBA_fnc_addEventHandler}";
+    };
+};
