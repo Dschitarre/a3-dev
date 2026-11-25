@@ -1,15 +1,9 @@
 class CfgPatches {
     class disabletacticalview {
         units[] = {"moduleDisableTacticalView"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleDisableTacticalView: NO_CATEGORY {
-        displayName = "Disable Tactical View";
     };
 };
 
@@ -18,17 +12,10 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
-            class Combo;
-            class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleDisableTacticalView: Module_F {
@@ -42,30 +29,30 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleDisableTacticalView";
 
         class Attributes: AttributesBase {
             class ModuleDescription: ModuleDescription {};
         };
 
         class ModuleDescription: ModuleDescription {
-            description = "This module displays tactical view for all players.";
+            description = "This module disables the tactical view for all players.";
             sync[] = {};
         };
     };
 };
 
 class CfgFunctions {
-    class disabletacticalview {
-        class main {
-            file = "disabletacticalview\scripts";
-        };
-    };
-
     class DTV {
         class NO_CATEGORY {
-            file = "\disabletacticalview\functions";
+            file = "\disabletacticalview";
             class moduleDisableTacticalView {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class disabletacticalview {
+        init = "[false] call compile preprocessFileLineNumbers 'disabletacticalview\scripts\cbaSettings.sqf'";
     };
 };

@@ -1,13 +1,3 @@
-#include "hpp\defines.hpp"
-#include "hpp\gui.hpp"
-
-class CfgSounds
-{
-    sounds[] = {};
-    class kill
-    {
-        name = "kill";
-        sound[] = {"kill.ogg", 1.5, 1};
-        titles[] = {0, ""};
-    };
-};
+#include "ui\ui.hpp"
+#include "modsIntegrated\cbaSettings.hpp"
+#include "TR\ui.hpp"

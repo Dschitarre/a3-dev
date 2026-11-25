@@ -1,0 +1,53 @@
+// Map param for Altis; value v > 0 selects row v - 1 of mapData[] (GG\maps\mapDataAltis.hpp).
+class Map {
+    title = "Map";
+    values[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44};
+    texts[] = {
+        "Random",
+        "Zaros",
+        "Agios Dionysios",
+        "Telos",
+        "Kavala",
+        "Kalochori",
+        "Panagia",
+        "Selakano",
+        "GhostHotel",
+        "Antharkia",
+        "Kore",
+        "Negades",
+        "Panochori",
+        "Therisa",
+        "Poliakko",
+        "Katalaki",
+        "Alikampos Factory",
+        "Alikampos",
+        "Neochori",
+        "Stavros",
+        "Lakka",
+        "Lakka Factory",
+        "Syrta",
+        "Galati",
+        "Abdera",
+        "Agios Konstantinos",
+        "Oreokastro",
+        "Frini",
+        "Athira",
+        "Gravia",
+        "Airfield Harbor",
+        "Rodopoli",
+        "Charkia",
+        "Pyrgos",
+        "Dorida",
+        "Chalkeia",
+        "Feres",
+        "Paros",
+        "Military Base Agios Georgios",
+        "Sofia",
+        "Molos",
+        "Neri",
+        "Neri Beach",
+        "Kavala City",
+        "Aggelochori"
+    };
+    default = 0;
+};

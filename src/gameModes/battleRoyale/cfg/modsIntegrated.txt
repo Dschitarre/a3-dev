@@ -1,0 +1,9 @@
+allowdamageglobal
+killfeed
+dynamicweather
+disablestamina
+disabletacticalview
+earplugs
+holster
+jump
+lagswitchdetection

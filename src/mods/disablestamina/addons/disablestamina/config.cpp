@@ -1,15 +1,24 @@
+#define VALUES_SWAY \
+    class Values { \
+        class 0 {name = "0%"; value = 0;}; \
+        class 0_1 {name = "10%"; value = 0.1;}; \
+        class 0_2 {name = "20%"; value = 0.2;}; \
+        class 0_3 {name = "30%"; value = 0.3;}; \
+        class 0_4 {name = "40%"; value = 0.4;}; \
+        class 0_5 {name = "50%"; value = 0.5;}; \
+        class 0_6 {name = "60%"; value = 0.6;}; \
+        class 0_7 {name = "70%"; value = 0.7;}; \
+        class 0_8 {name = "80%"; value = 0.8;}; \
+        class 0_9 {name = "90%"; value = 0.9;}; \
+        class 1 {name = "100%"; value = 1;}; \
+    }
+
 class CfgPatches {
     class disablestamina {
         units[] = {"moduleDisableStamina"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleDisableStamina: NO_CATEGORY {
-        displayName = "Disable Stamina";
     };
 };
 
@@ -18,17 +27,11 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
             class Combo;
-            class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleDisableStamina: Module_F {
@@ -42,7 +45,6 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleDisableStamina";
 
         class Attributes: AttributesBase {
             class weaponSwayEnabled: Combo {
@@ -51,53 +53,7 @@ class CfgVehicles {
                 tooltip = "Amount of weapon sway when stamina is enabled";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 0_1 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 0_2 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 0_3 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 0_4 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 0_5 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 0_6 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 0_7 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 0_8 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 0_9 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 1 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_SWAY;
             };
 
             class weaponSwayDisabled: Combo {
@@ -106,53 +62,7 @@ class CfgVehicles {
                 tooltip = "Amount of weapon sway when stamina is disabled";
                 typeName = "NUMBER";
                 defaultValue = "0.3";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 0_1 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 0_2 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 0_3 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 0_4 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 0_5 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 0_6 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 0_7 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 0_8 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 0_9 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 1 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_SWAY;
             };
 
             class ModuleDescription: ModuleDescription {};
@@ -166,16 +76,17 @@ class CfgVehicles {
 };
 
 class CfgFunctions {
-    class disablestamina {
-        class main {
-            file = "disablestamina\scripts";
-        };
-    };
-
     class DS {
         class NO_CATEGORY {
-            file = "\disablestamina\functions";
+            file = "\disablestamina";
             class moduleDisableStamina {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class disablestamina {
+        init = "[false] call compile preprocessFileLineNumbers 'disablestamina\scripts\cbaSettings.sqf'";
     };
 };

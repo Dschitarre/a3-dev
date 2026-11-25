@@ -1,0 +1,59 @@
+#include "ui\ui.hpp"
+#include "modsIntegrated\cbaSettings.hpp"
+#include "AIS\BarDlg.hpp"
+#include "common\config.hpp"
+#include "BR\maps\mapData.hpp"
+#include "BR\loot\lootPool.hpp"
+#include "BR\ui.hpp"
+#include "ui\groupMenu.hpp"
+
+class Params {
+    #include "BR\params.hpp"
+};
+
+class CfgFunctions {
+    // compiles all BR function files (BR\functions.sqf) on every machine before any init script or
+    // remoteExec message runs; the call in initServer.sqf / initPlayerLocal.sqf is then a no-op
+    class BR_bootstrap {
+        tag = "BR";
+
+        class game {
+            class compileFunctions {
+                file = "BR\functions.sqf";
+                preInit = 1;
+            };
+        };
+    };
+};
+
+enableDebugConsole = 1;
+author = "Dschitarre";
+onLoadName = "Battle Royale";
+onLoadMission = "";
+
+class Header {
+    gameType = LastMan;
+    minPlayers = 1;
+    maxPlayers = 150;
+};
+
+minPlayers = 1;
+maxPlayers = 150;
+
+// dead players stay dead (BR\spectator.sqf sets an endless respawn time); dead AI respawn as parked spare units
+briefing = 0;
+debriefing = 0;
+saving = 0;
+respawn = 3;
+respawnDelay = 5;
+respawnDialog = 0;
+respawnOnStart = 0;
+respawnButton = 0;
+ReviveMode = 0;
+disabledAI = 0;
+aiKills = 1;
+joinUnassigned = 0;
+enableTeamSwitch = 0;
+HostDoesNotSkipLobby = 1;
+corpseManagerMode = 0;
+wreckManagerMode = 0;

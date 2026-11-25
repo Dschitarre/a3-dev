@@ -1,15 +1,9 @@
 class CfgPatches {
     class tdicons {
         units[] = {"moduleTdIcons"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleTdIcons: NO_CATEGORY {
-        displayName = "3D Icons";
     };
 };
 
@@ -18,17 +12,11 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
-            class Combo;
             class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleTdIcons: Module_F {
@@ -42,121 +30,54 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleTdIcons";
 
         class Attributes: AttributesBase {
-            class ShowAllSides: Combo {
+            class ShowAllSides: Checkbox {
                 property = "moduleTdIcons_showAllSides";
                 displayName = "Show all sides";
                 tooltip = "toggles whether units of all sides are displayed";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
-            class showAllSidesOnSpectator: Combo {
+            class showAllSidesOnSpectator: Checkbox {
                 property = "moduleTdIcons_showAllSidesOnSpectator";
                 displayName = "Show all sides when in spectator";
                 tooltip = "toggles whether units of all sides are displayed when in spectator";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
-            class shoWUnitNames: Combo {
+            class shoWUnitNames: Checkbox {
                 property = "moduleTdIcons_shoWUnitNames";
                 displayName = "Show Unit Names";
                 tooltip = "toggles whether the names of units are shown below the icons";
-                typeName = "NUMBER";
-                defaultValue = "1";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "true";
             };
 
-            class hideInvisible: Combo {
+            class hideInvisible: Checkbox {
                 property = "moduleTdIcons_hideInvisible";
                 displayName = "Hide invisible";
                 tooltip = "toggles whether the icons of units, that are not visible, are hidden";
-                typeName = "NUMBER";
-                defaultValue = "1";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "true";
             };
 
-            class showGroupIcons: Combo {
+            class showGroupIcons: Checkbox {
                 property = "moduleTdIcons_showGroupIcons";
                 displayName = "Show Group Icons";
                 tooltip = "toggles whether to show group icons (if enabled, please disable group icons in the difficulty settings)";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
-            class hideInvisibleGroupMembers: Combo {
+            class hideInvisibleGroupMembers: Checkbox {
                 property = "moduleTdIcons_hideInvisibleGroupMembers";
                 displayName = "Hide invisible Group Members";
                 tooltip = "toggles whether the icons of group members, that are not visible, are hidden";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
             class ModuleDescription: ModuleDescription {};
@@ -170,16 +91,17 @@ class CfgVehicles {
 };
 
 class CfgFunctions {
-    class tdicons {
-        class main {
-            file = "tdicons\scripts";
-        };
-    };
-
     class TDI {
         class NO_CATEGORY {
-            file = "\tdicons\functions";
+            file = "\tdicons";
             class moduleTdIcons {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class tdicons {
+        init = "[false] call compile preprocessFileLineNumbers 'tdicons\scripts\cbaSettings.sqf'";
     };
 };

@@ -1,35 +1,36 @@
-#include "\a3\ui_f\hpp\defineCommon.inc"
-#include "SC\gui\guiDefines.hpp"
-#include "SC\gui\infoDialog.hpp"
-#include "SC\gui\respawnMapDisplay.hpp"
-#include "SC\gui\spectatorDisplay.hpp"
-#include "SC\gui\statisticsDialog.hpp"
-#include "SC\gui\settingsDialog.hpp"
-#include "SC\gui\loadoutDialog.hpp"
-#include "SC\gui\equipmentDialog.hpp"
-#include "SC\gui\vehicleSpawnDialog.hpp"
-#include "SC\gui\perkDialog.hpp"
+#include "ui\ui.hpp"
+#include "modsIntegrated\cbaSettings.hpp"
+#include "SC\dialogs.hpp"
+#include "SC\game.hpp"
 #include "SC\maps\mapData.hpp"
-#include "SC\gameMode\client\debriefings.hpp"
-#include "SC\gameMode\client\notifications.hpp"
 #include "SC\rankSystem\itemConfig.hpp"
 #include "SC\rankSystem\vehicleConfig.hpp"
-#include "VA\override_VA_templates\settings.hpp"
-#include "AIS\Effects\BarDlg.hpp"
+#include "SC\worldGroupConfig.hpp"
+#include "AIS\BarDlg.hpp"
 
 class CfgFunctions {
-    #include "VA\override_VA_templates\functions\functions.hpp"
-    #include "AIS\cfgFunctions.hpp"
+    // compiles all SC files (SC\functions.sqf) on every machine before any init script or
+    // JIP / remoteExec message runs; the calls in initServer.sqf / initPlayerLocal.sqf are then no-ops
+    class SC_bootstrap {
+        tag = "SC";
+
+        class game {
+            class compileFunctions {
+                file = "SC\functions.sqf";
+                preInit = 1;
+            };
+        };
+    };
 };
 
 class Params {
-    #include "SC\gameMode\params.hpp"
+    #include "SC\params.hpp"
     #include "SC\maps\mapName.hpp"
 };
 
 class RscTitles {
-    #include "SC\gui\guiDisplay.hpp"
-    #include "AIS\Effects\BarDlgRsc.hpp"
+    #include "SC\hud\hudDisplay.hpp"
+    #include "AIS\BarDlgRsc.hpp"
 };
 
 enableDebugConsole = 1;

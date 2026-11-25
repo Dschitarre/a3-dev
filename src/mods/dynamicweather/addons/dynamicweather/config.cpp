@@ -1,15 +1,54 @@
+#define VALUES_PERCENT \
+    class Values { \
+        class 0 {name = "0%"; value = 0;}; \
+        class 10 {name = "10%"; value = 0.1;}; \
+        class 20 {name = "20%"; value = 0.2;}; \
+        class 30 {name = "30%"; value = 0.3;}; \
+        class 40 {name = "40%"; value = 0.4;}; \
+        class 50 {name = "50%"; value = 0.5;}; \
+        class 60 {name = "60%"; value = 0.6;}; \
+        class 70 {name = "70%"; value = 0.7;}; \
+        class 80 {name = "80%"; value = 0.8;}; \
+        class 90 {name = "90%"; value = 0.9;}; \
+        class 100 {name = "100%"; value = 1;}; \
+    }
+
+#define VALUES_TIME_MULTIPLIER \
+    class Values { \
+        class 1 {name = "1"; value = 1;}; \
+        class 2 {name = "2"; value = 2;}; \
+        class 5 {name = "5"; value = 5;}; \
+        class 7 {name = "7"; value = 7;}; \
+        class 10 {name = "10"; value = 10;}; \
+        class 15 {name = "15"; value = 15;}; \
+        class 20 {name = "20"; value = 20;}; \
+        class 30 {name = "30"; value = 30;}; \
+        class 50 {name = "50"; value = 50;}; \
+        class 80 {name = "80"; value = 80;}; \
+        class 120 {name = "120"; value = 120;}; \
+    }
+
+#define VALUES_TIME_BETWEEN_CHANGES \
+    class Values { \
+        class 0_1 {name = "1 minute"; value = 0.1;}; \
+        class 0_2 {name = "2 minutes"; value = 0.2;}; \
+        class 0_5 {name = "5 minutes"; value = 0.5;}; \
+        class 1 {name = "10 minutes"; value = 1;}; \
+        class 2 {name = "20 minutes"; value = 2;}; \
+        class 3 {name = "30 minutes"; value = 3;}; \
+        class 4 {name = "40 minutes"; value = 4;}; \
+        class 5 {name = "50 minutes"; value = 5;}; \
+        class 6 {name = "1 hour"; value = 6;}; \
+        class 9 {name = "1 1/2 hours"; value = 9;}; \
+        class 12 {name = "2 hours"; value = 12;}; \
+    }
+
 class CfgPatches {
     class dynamicweather {
         units[] = {"moduleDynamicWeather"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleDynamicWeather: NO_CATEGORY {
-        displayName = "Dynamic Weather";
     };
 };
 
@@ -18,17 +57,11 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
             class Combo;
-            class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleDynamicWeather: Module_F {
@@ -42,62 +75,33 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleDynamicWeather";
 
         class Attributes: AttributesBase {
+            class weatherPreset: Combo {
+                property = "moduleDynamicWeather_weatherPreset";
+                displayName = "weather preset";
+                tooltip = "weather ranges of a preset (as in Sector Control); 'Custom' uses the overcast, fog, rain and wind ranges below";
+                typeName = "NUMBER";
+                defaultValue = "0";
+
+                class Values {
+                    class custom {name = "Custom"; value = 0;};
+                    class dynamic {name = "Dynamic"; value = 1;};
+                    class dynamicFoggy {name = "Dynamic Foggy"; value = 2;};
+                    class sunny {name = "Sunny"; value = 3;};
+                    class cloudy {name = "Cloudy"; value = 4;};
+                    class stormy {name = "Stormy"; value = 5;};
+                    class rainy {name = "Rainy"; value = 6;};
+                };
+            };
+
             class minOvercast: Combo {
                 property = "moduleDynamicWeather_minOvercast";
                 displayName = "minimum overcast";
                 tooltip = "lower border of the range the overcast can change within";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class maxOvercast: Combo {
@@ -106,53 +110,7 @@ class CfgVehicles {
                 tooltip = "upper border of the range the overcast can change within";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class minFogSunny: Combo {
@@ -161,53 +119,7 @@ class CfgVehicles {
                 tooltip = "lower border of the range the fog can change within while it is sunny";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class maxFogSunny: Combo {
@@ -216,53 +128,7 @@ class CfgVehicles {
                 tooltip = "upper border of the range the fog can change within while it is sunny";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class minFogStormy: Combo {
@@ -271,53 +137,7 @@ class CfgVehicles {
                 tooltip = "lower border of the range the fog can change within while it is stormy";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class maxFogStormy: Combo {
@@ -326,53 +146,7 @@ class CfgVehicles {
                 tooltip = "upper border of the range the fog can change within while it is stormy";
                 typeName = "NUMBER";
                 defaultValue = "0.1";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class minRain: Combo {
@@ -381,53 +155,7 @@ class CfgVehicles {
                 tooltip = "lower border of the range the rain can change within";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class maxRain: Combo {
@@ -436,53 +164,7 @@ class CfgVehicles {
                 tooltip = "upper border of the range the rain can change within";
                 typeName = "NUMBER";
                 defaultValue = "0.7";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class minWindSunny: Combo {
@@ -491,53 +173,7 @@ class CfgVehicles {
                 tooltip = "lower border of the range the wind can change within while sunny";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class maxWindSunny: Combo {
@@ -546,53 +182,7 @@ class CfgVehicles {
                 tooltip = "upper border of the range the wind can change within while sunny";
                 typeName = "NUMBER";
                 defaultValue = "0.3";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class minWindStormy: Combo {
@@ -601,108 +191,16 @@ class CfgVehicles {
                 tooltip = "lower border of the range the wind can change within while stormy";
                 typeName = "NUMBER";
                 defaultValue = "0";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
-            
+
             class maxWindStormy: Combo {
                 property = "moduleDynamicWeather_maxWindStormy";
                 displayName = "maximum wind while stormy";
                 tooltip = "upper border of the range the wind can change within while stormy";
                 typeName = "NUMBER";
                 defaultValue = "0.6";
-                
-                class Values {
-                    class 0 {
-                        name = "0%";
-                        value = 0;
-                    };
-                    class 10 {
-                        name = "10%";
-                        value = 0.1;
-                    };
-                    class 20 {
-                        name = "20%";
-                        value = 0.2;
-                    };
-                    class 30 {
-                        name = "30%";
-                        value = 0.3;
-                    };
-                    class 40 {
-                        name = "40%";
-                        value = 0.4;
-                    };
-                    class 50 {
-                        name = "50%";
-                        value = 0.5;
-                    };
-                    class 60 {
-                        name = "60%";
-                        value = 0.6;
-                    };
-                    class 70 {
-                        name = "70%";
-                        value = 0.7;
-                    };
-                    class 80 {
-                        name = "80%";
-                        value = 0.8;
-                    };
-                    class 90 {
-                        name = "90%";
-                        value = 0.9;
-                    };
-                    class 100 {
-                        name = "100%";
-                        value = 1;
-                    };
-                };
+                VALUES_PERCENT;
             };
 
             class timeMultiplierChangeDay: Combo {
@@ -711,53 +209,7 @@ class CfgVehicles {
                 tooltip = "time multiplier during weather change (day)";
                 typeName = "NUMBER";
                 defaultValue = "15";
-                
-                class Values {
-                    class 1 {
-                        name = "1";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "2";
-                        value = 2;
-                    };
-                    class 5 {
-                        name = "5";
-                        value = 5;
-                    };
-                    class 7 {
-                        name = "7";
-                        value = 7;
-                    };
-                    class 10 {
-                        name = "10";
-                        value = 10;
-                    };
-                    class 15 {
-                        name = "15";
-                        value = 15;
-                    };
-                    class 20 {
-                        name = "20";
-                        value = 20;
-                    };
-                    class 30 {
-                        name = "30";
-                        value = 30;
-                    };
-                    class 50 {
-                        name = "50";
-                        value = 50;
-                    };
-                    class 80 {
-                        name = "80";
-                        value = 80;
-                    };
-                    class 120 {
-                        name = "120";
-                        value = 120;
-                    };
-                };
+                VALUES_TIME_MULTIPLIER;
             };
 
             class timeMultiplierChangeNight: Combo {
@@ -766,53 +218,7 @@ class CfgVehicles {
                 tooltip = "time multiplier during weather change (night)";
                 typeName = "NUMBER";
                 defaultValue = "15";
-                
-                class Values {
-                    class 1 {
-                        name = "1";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "2";
-                        value = 2;
-                    };
-                    class 5 {
-                        name = "5";
-                        value = 5;
-                    };
-                    class 7 {
-                        name = "7";
-                        value = 7;
-                    };
-                    class 10 {
-                        name = "10";
-                        value = 10;
-                    };
-                    class 15 {
-                        name = "15";
-                        value = 15;
-                    };
-                    class 20 {
-                        name = "20";
-                        value = 20;
-                    };
-                    class 30 {
-                        name = "30";
-                        value = 30;
-                    };
-                    class 50 {
-                        name = "50";
-                        value = 50;
-                    };
-                    class 80 {
-                        name = "80";
-                        value = 80;
-                    };
-                    class 120 {
-                        name = "120";
-                        value = 120;
-                    };
-                };
+                VALUES_TIME_MULTIPLIER;
             };
 
             class timeMultiplierStaticDay: Combo {
@@ -821,53 +227,7 @@ class CfgVehicles {
                 tooltip = "time multiplier while weather is static (day)";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 1 {
-                        name = "1";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "2";
-                        value = 2;
-                    };
-                    class 5 {
-                        name = "5";
-                        value = 5;
-                    };
-                    class 7 {
-                        name = "7";
-                        value = 7;
-                    };
-                    class 10 {
-                        name = "10";
-                        value = 10;
-                    };
-                    class 15 {
-                        name = "15";
-                        value = 15;
-                    };
-                    class 20 {
-                        name = "20";
-                        value = 20;
-                    };
-                    class 30 {
-                        name = "30";
-                        value = 30;
-                    };
-                    class 50 {
-                        name = "50";
-                        value = 50;
-                    };
-                    class 80 {
-                        name = "80";
-                        value = 80;
-                    };
-                    class 120 {
-                        name = "120";
-                        value = 120;
-                    };
-                };
+                VALUES_TIME_MULTIPLIER;
             };
 
             class timeMultiplierStaticNight: Combo {
@@ -876,91 +236,24 @@ class CfgVehicles {
                 tooltip = "time multiplier while weather is static (night)";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 1 {
-                        name = "1";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "2";
-                        value = 2;
-                    };
-                    class 5 {
-                        name = "5";
-                        value = 5;
-                    };
-                    class 7 {
-                        name = "7";
-                        value = 7;
-                    };
-                    class 10 {
-                        name = "10";
-                        value = 10;
-                    };
-                    class 15 {
-                        name = "15";
-                        value = 15;
-                    };
-                    class 20 {
-                        name = "20";
-                        value = 20;
-                    };
-                    class 30 {
-                        name = "30";
-                        value = 30;
-                    };
-                    class 50 {
-                        name = "50";
-                        value = 50;
-                    };
-                    class 80 {
-                        name = "80";
-                        value = 80;
-                    };
-                    class 120 {
-                        name = "120";
-                        value = 120;
-                    };
-                };
+                VALUES_TIME_MULTIPLIER;
             };
 
             class skipNightTime: Combo {
                 property = "moduleDynamicWeather_skipNightTime";
                 displayName = "skip night";
-                tooltip = "determines if and when the night is skipped";
+                tooltip = "determines if and from when on the night is skipped to the next sunrise";
                 typeName = "NUMBER";
                 defaultValue = "19";
-                
+
                 class Values {
-                    class 0 {
-                        name = "do not skip";
-                        value = 0;
-                    };
-                    class 17 {
-                        name = "skip at 17:00";
-                        value = 17;
-                    };
-                    class 18 {
-                        name = "skip at 18:00";
-                        value = 18;
-                    };
-                    class 19 {
-                        name = "skip at 19:00";
-                        value = 19;
-                    };
-                    class 20 {
-                        name = "skip at 20:00";
-                        value = 20;
-                    };
-                    class 21 {
-                        name = "skip at 21:00";
-                        value = 21;
-                    };
-                    class 22 {
-                        name = "skip at 22:00";
-                        value = 22;
-                    };
+                    class 0 {name = "do not skip"; value = 0;};
+                    class 17 {name = "skip at 17:00"; value = 17;};
+                    class 18 {name = "skip at 18:00"; value = 18;};
+                    class 19 {name = "skip at 19:00"; value = 19;};
+                    class 20 {name = "skip at 20:00"; value = 20;};
+                    class 21 {name = "skip at 21:00"; value = 21;};
+                    class 22 {name = "skip at 22:00"; value = 22;};
                 };
             };
 
@@ -970,53 +263,7 @@ class CfgVehicles {
                 tooltip = "determines how long the weather stays the same between weather changes when it is sunny";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 0_1 {
-                        name = "1 minute";
-                        value = 0.1;
-                    };
-                    class 0_2 {
-                        name = "2 minutes";
-                        value = 0.2;
-                    };
-                    class 0_5 {
-                        name = "5 minutes";
-                        value = 0.5;
-                    };
-                    class 1 {
-                        name = "10 minutes";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "20 minutes";
-                        value = 2;
-                    };
-                    class 3 {
-                        name = "30 minutes";
-                        value = 3;
-                    };
-                    class 4 {
-                        name = "40 minutes";
-                        value = 4;
-                    };
-                    class 5 {
-                        name = "50 minutes";
-                        value = 5;
-                    };
-                    class 6 {
-                        name = "1 hour";
-                        value = 6;
-                    };
-                    class 9 {
-                        name = "1 1/2 hours";
-                        value = 9;
-                    };
-                    class 12 {
-                        name = "2 hours";
-                        value = 12;
-                    };
-                };
+                VALUES_TIME_BETWEEN_CHANGES;
             };
 
             class timeBetweenWeatherChangesMultiplierStormy: Combo {
@@ -1025,76 +272,31 @@ class CfgVehicles {
                 tooltip = "determines how long the weather stays the same between weather changes when it is stormy";
                 typeName = "NUMBER";
                 defaultValue = "1";
-                
-                class Values {
-                    class 0_1 {
-                        name = "1 minute";
-                        value = 0.1;
-                    };
-                    class 0_2 {
-                        name = "2 minutes";
-                        value = 0.2;
-                    };
-                    class 0_5 {
-                        name = "5 minutes";
-                        value = 0.5;
-                    };
-                    class 1 {
-                        name = "10 minutes";
-                        value = 1;
-                    };
-                    class 2 {
-                        name = "20 minutes";
-                        value = 2;
-                    };
-                    class 3 {
-                        name = "30 minutes";
-                        value = 3;
-                    };
-                    class 4 {
-                        name = "40 minutes";
-                        value = 4;
-                    };
-                    class 5 {
-                        name = "50 minutes";
-                        value = 5;
-                    };
-                    class 6 {
-                        name = "1 hour";
-                        value = 6;
-                    };
-                    class 9 {
-                        name = "1 1/2 hours";
-                        value = 9;
-                    };
-                    class 12 {
-                        name = "2 hours";
-                        value = 12;
-                    };
-                };
+                VALUES_TIME_BETWEEN_CHANGES;
             };
 
             class ModuleDescription: ModuleDescription {};
         };
 
         class ModuleDescription: ModuleDescription {
-            description = "This module sets random weather once it is triggered. There will be a short freeze. Then it changes the weather randomly according to the settings defined in the module. There are 2 alternating phases. In phase 1 the weather changes. In phase 2 it remains static so the clients can sync to the server. This is necesarry to ensure synced weather in multiplayer. It works in singleplayer as well. In order for this module to work correctly there should not be any other scripts trying to set the time multiplier.";
+            description = "This module sets random weather once it is triggered. There will be a short freeze. Then it changes the weather randomly according to the settings defined in the module. There are 2 alternating phases. In phase 1 the weather changes. In phase 2 it remains static so the clients can sync to the server. This is necessary to ensure synced weather in multiplayer. It works in singleplayer as well. In order for this module to work correctly there should not be any other scripts trying to set the time multiplier.";
             sync[] = {};
         };
     };
 };
 
 class CfgFunctions {
-    class dynamicweather {
-        class main {
-            file = "dynamicweather\scripts";
-        };
-    };
-
     class DW {
-        class Environment {
-            file = "\dynamicweather\functions";
+        class NO_CATEGORY {
+            file = "\dynamicweather";
             class moduleDynamicWeather {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class dynamicweather {
+        init = "[false] call compile preprocessFileLineNumbers 'dynamicweather\scripts\cbaSettings.sqf'";
     };
 };

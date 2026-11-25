@@ -1,3 +1,4 @@
+// Library addon without a module: runs on every mission as soon as the addon is loaded.
 class CfgPatches {
     class lagswitchdetection {
         units[] = {};

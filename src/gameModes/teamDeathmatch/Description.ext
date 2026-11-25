@@ -1,18 +1,29 @@
+#include "ui\ui.hpp"
+#include "modsIntegrated\cbaSettings.hpp"
+#include "common\config.hpp"
+#include "common\vote.hpp"
 #include "TDM\maps\mapData.hpp"
-#include "TDM\config\defines.hpp"
-#include "TDM\config\dialog.hpp"
-#include "TDM\config\itemConfig.hpp"
-#include "TDM\config\notifications.hpp"
-#include "TDM\config\debriefing.hpp"
-#include "LARs\override_VA_templates\settings.hpp"
+#include "TDM\ui.hpp"
+#include "TDM\itemConfig.hpp"
 
 class Params {
-    #include "TDM\config\params.hpp"
+    #include "TDM\params.hpp"
     #include "TDM\maps\mapName.hpp"
 };
 
 class CfgFunctions {
-    #include "LARs\override_VA_templates\functions\functions.hpp"
+    // compiles all TDM function files (TDM\functions.sqf) on every machine before any init script or
+    // remoteExec message runs; the call in initServer.sqf / initPlayerLocal.sqf is then a no-op
+    class DM_bootstrap {
+        tag = "DM";
+
+        class game {
+            class compileFunctions {
+                file = "TDM\functions.sqf";
+                preInit = 1;
+            };
+        };
+    };
 };
 
 enableDebugConsole = 1;

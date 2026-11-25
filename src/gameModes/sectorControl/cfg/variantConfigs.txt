@@ -1,0 +1,5 @@
+SC\maps\mapData.hpp
+SC\maps\mapName.hpp
+SC\rankSystem\itemConfig.hpp
+SC\rankSystem\vehicleConfig.hpp
+SC\worldGroupConfig.hpp

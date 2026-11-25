@@ -1,7 +1,30 @@
-#include "GG\config\notifications.hpp"
-#include "GG\config\params.hpp"
-#include "GG\config\defines.hpp"
-#include "GG\config\dialog.hpp"
+#include "ui\ui.hpp"
+#include "modsIntegrated\cbaSettings.hpp"
+#include "common\config.hpp"
+#include "common\vote.hpp"
+#include "GG\maps\mapData.hpp"
+#include "GG\ui.hpp"
+#include "GG\weaponList.hpp"
+
+class Params {
+    #include "GG\maps\mapName.hpp"
+    #include "GG\params.hpp"
+};
+
+class CfgFunctions {
+    // compiles all GG function files (GG\functions.sqf) on every machine before any init script or
+    // remoteExec message runs; the call in initServer.sqf / initPlayerLocal.sqf is then a no-op
+    class GG_bootstrap {
+        tag = "GG";
+
+        class game {
+            class compileFunctions {
+                file = "GG\functions.sqf";
+                preInit = 1;
+            };
+        };
+    };
+};
 
 enableDebugConsole = 1;
 author = "Dschitarre";
@@ -10,13 +33,6 @@ onLoadMission = "";
 
 class Header {
     gameType = DM;
-};
-
-class CfgDebriefing {
-    class pease_reenter {
-        title = "please reenter from the lobby";
-        description = "This is necessary to work arount a bug in Arma 3. It can happen several times in a row.";
-    };
 };
 
 minPlayers = 1;

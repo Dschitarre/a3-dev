@@ -1,160 +1,129 @@
-TDI_var_serverRunning = nil;
+// 3D icons (server): settings, the side of every unit and the name of every UAV as public variables, and starting /
+// stopping the icons on every client, including JIP.
+
+TDI_var_serverRunning = false;
 TDI_var_entityCreatedEhId = -1;
+TDI_var_entityKilledEhId = -1;
 TDI_var_remoteExecId = "";
 
-TDI_var_ShowAllSides = false;
-TDI_var_ShowAllSidesOnSpectator = false;
-TDI_var_DrawUnitsOnSpectator = true;
-TDI_var_ShowUnitNames = true;
-TDI_var_HideInvisible = true;
-TDI_var_ShowGroupIcons = false;
-TDI_var_HideInvisibleGroupMembers = false;
+// ---- settings ----
+// Game modes and the module overwrite these later.
+
+TDI_var_showAllSides = false;
+TDI_var_showAllSidesOnSpectator = false;
+TDI_var_drawUnitsOnSpectator = true;
+TDI_var_showUnitNames = true;
+TDI_var_hideInvisible = true;
+TDI_var_showGroupIcons = false;
+TDI_var_hideInvisibleGroupMembers = false;
 TDI_var_groupUnitsLimitedDistance = false;
 
-publicVariable "TDI_var_ShowAllSides";
-publicVariable "TDI_var_ShowAllSidesOnSpectator";
-publicVariable "TDI_var_DrawUnitsOnSpectator";
-publicVariable "TDI_var_ShowUnitNames";
-publicVariable "TDI_var_HideInvisible";
-publicVariable "TDI_var_ShowGroupIcons";
-publicVariable "TDI_var_HideInvisibleGroupMembers";
-publicVariable "TDI_var_groupUnitsLimitedDistance";
+{
+    publicVariable _x;
+} forEach [
+    "TDI_var_showAllSides",
+    "TDI_var_showAllSidesOnSpectator",
+    "TDI_var_drawUnitsOnSpectator",
+    "TDI_var_showUnitNames",
+    "TDI_var_hideInvisible",
+    "TDI_var_showGroupIcons",
+    "TDI_var_hideInvisibleGroupMembers",
+    "TDI_var_groupUnitsLimitedDistance"
+];
 
-TDI_fnc_getConfigEntry = {
-    params ["_typeName"];
-
-    _entryStr = switch true do {
-        case (_typeName isKindOf [_typeName, (configFile >> "CfgMagazines")]): {"CfgMagazines"};
-        case (_typeName isKindOf [_typeName, (configFile >> "CfgAmmo")]): {"CfgAmmo"};
-        case (_typeName isKindOf [_typeName, (configFile >> "CfgVehicles")]): {"CfgVehicles"};
-        case (_typeName isKindOf [_typeName, (configFile >> "CfgWeapons")]): {"CfgWeapons"};
-        default {""};
-    };
-
-    if (_entryStr == "") then {objNull} else {
-        (configfile >> _entryStr >> _typeName)
-    }
-};
-
-TDI_fnc_GetDisplayName = {
-    params ["_typeName"];
-
-    _configEntry = [_typeName] call TDI_fnc_getConfigEntry;
-
-    if (isNull _configEntry) then {""} else {getText (_configEntry >> "displayName")}
-};
-
-TDI_fnc_getName = {
-    params ["_unit"];
-
-    _name = "";
-
-    if (unitIsUAV _unit) then {
-        _name = [([typeOf _unit] call TDI_fnc_GetDisplayName), "(AI)"] joinString " ";
-    } else {
-        _name = name _unit;
-
-        if (isPlayer _unit) then {_name} else {
-            _ss = _name splitString " ";
-
-            if ((count _ss) > 1) then {
-                _sss = (_ss select 0) splitString "-";
-
-                if ((count _sss) > 1) then {
-                    _name = ((_sss select 0) select [0,1]) + ".-" + ((_sss select 1) select [0,1]) + ". " + (_ss select 1);
-                } else {
-                    _name = ((_ss select 0) select [0,1]) + ". " + (_ss select 1);
-                };
-            };
-            
-            _name = _name + " (AI)";
-        };
-    };
-
-    _name
-};
-
-TDI_fnc_getIcon = {
-    params ["_unit", "_side"];
-
-    format [
-        "\A3\ui_f\data\Map\Diary\Icons\player%1%2_ca.paa",
-        (if (alive _unit) then {""} else {"Brief"}),
-        (
-            switch _side do {
-                case west: {"West"};
-                case east: {"East"};
-                case independent: {"Guer"};
-                case civilian: {"Civ"};
-                default {"Unknown"};
-            }
-        )
-    ]
-};
+// ---- entities ----
+// The clients build the unit names themselves (TDI_fnc_unitName) and read the side of living units from their group;
+// the server announces the side and controller a unit had at its init and death (for dead units).
 
 TDI_fnc_entityInitServer = {
     params ["_entity"];
 
-    _startTime = time;
-    waitUntil {(isNil "_entity") || {!(isNull _entity)} || {(time - _startTime) > 3}};
-    if ((isNil "_entity") || {isNull _entity}) exitWith {};
+    // the name and group of a new unit can be missing for a moment
+    private _timeout = time + 3;
+    waitUntil {isNull _entity || {name _entity != ""} || {time > _timeout}};
 
-    _this call {
-        params ["_entity"];
+    if (isNull _entity) exitWith {};
 
-        if (isNil {_entity getVariable "TDI_var_initDone"} && {(name _entity) != ""}) then {
-            _entity setVariable ["TDI_var_initDone", true];
+    if !(_entity getVariable ["TDI_var_initDone", false]) then {
+        _entity setVariable ["TDI_var_initDone", true];
 
-            if (_entity isKindOf "CAManBase") then {
-                if (isNil {_entity getVariable "TDI_var_name"}) then {
-                    _entity setVariable ["TDI_var_name", ([_entity] call TDI_fnc_getName), true];
-                };
-            } else {
-                _entity setVariable ["TDI_var_name", (getText (configfile >> "CfgVehicles" >> (typeOf _entity) >> "displayName")), true];
+        // UAVs: the vehicle name (a game mode may have set its own)
+        if (!(_entity isKindOf "CAManBase") && {(_entity getVariable ["TDI_var_name", ""]) == ""}) then {
+            _entity setVariable ["TDI_var_name", getText (configFile >> "CfgVehicles" >> typeOf _entity >> "displayName"), true];
+        };
+
+        _entity setVariable ["TDI_var_side", side group _entity, true];
+    };
+
+    if (_entity isKindOf "CAManBase") then {
+        [[_entity], {
+            if (!isNil "TDI_var_clientInitDone") then {
+                _this call TDI_fnc_entityInitClient;
             };
-
-            _entity setVariable ["TDI_var_side", (side (group _entity)), true];
-            [[_entity], {if !(isNil "TDI_var_clientInitDone") then {_this call TDI_fnc_entityInitClient};}] remoteExecCall ["call", 0];
-        }
+        }] remoteExecCall ["call", 0];
     };
 };
 
-TDI_fnc_startTdIconsServer = {
-    call {
-        if (isNil "TDI_var_serverRunning") then {
-            TDI_var_serverRunning = true;
+// a dead unit keeps the side and the controller (player or AI) of its death
+TDI_fnc_entityKilled = {
+    params ["_unit"];
 
-            {
-                [_x] spawn TDI_fnc_entityInitServer;
-            } forEach (entities [["CAManBase"], [""], true, false]);
+    if (!(_unit isKindOf "CAManBase") || {!(_unit getVariable ["TDI_var_initDone", false])}) exitWith {};
 
-            TDI_var_entityCreatedEhId = addMissionEventHandler ["EntityCreated", {
-                params ["_entity"];
-
-                if (_entity isKindOf "CAManBase") then {
-                    [_entity] spawn TDI_fnc_entityInitServer;
-                };
-            }];
-
-            TDI_var_remoteExecId = [[], {if hasInterface then {waitUntil {!(isNil "TDI_var_clientInitDone")}; call TDI_fnc_startTdIconsClient;};}] remoteExecCall ["spawn", 0, true];
-        };
+    if (!isNull group _unit) then {
+        _unit setVariable ["TDI_var_side", side group _unit, true];
     };
+
+    _unit setVariable ["TDI_var_wasPlayer", isPlayer _unit, true];
+};
+
+// ---- start / stop ----
+
+TDI_fnc_startTdIconsServer = {
+    if (TDI_var_serverRunning) exitWith {};
+
+    TDI_var_serverRunning = true;
+
+    // UAVs placed before the start get their name as well
+    {
+        [_x] spawn TDI_fnc_entityInitServer;
+    } forEach (entities [["CAManBase"], [""], true, false] + allUnitsUAV);
+
+    TDI_var_entityCreatedEhId = addMissionEventHandler ["EntityCreated", {
+        params ["_entity"];
+
+        if (_entity isKindOf "CAManBase" || {unitIsUAV _entity}) then {
+            [_entity] spawn TDI_fnc_entityInitServer;
+        };
+    }];
+
+    TDI_var_entityKilledEhId = addMissionEventHandler ["EntityKilled", {_this call TDI_fnc_entityKilled}];
+
+    TDI_var_remoteExecId = [[], {
+        if (!hasInterface) exitWith {};
+        waitUntil {!isNil "TDI_var_clientInitDone"};
+        call TDI_fnc_startTdIconsClient;
+    }] remoteExecCall ["spawn", 0, true];
 };
 
 TDI_fnc_stopTdIconsServer = {
-    call {
-        if !(isNil "TDI_var_serverRunning") then {
-            TDI_var_serverRunning = nil;
+    if (!TDI_var_serverRunning) exitWith {};
 
-            remoteExecCall ["", TDI_var_remoteExecId];
-            TDI_var_remoteExecId = "";
+    TDI_var_serverRunning = false;
 
-            removeMissionEventHandler ["EntityCreated", TDI_var_entityCreatedEhId];
-            TDI_var_entityCreatedEhId = -1;
+    remoteExecCall ["", TDI_var_remoteExecId];
+    TDI_var_remoteExecId = "";
 
-            [[], {if hasInterface then {waitUntil {!(isNil "TDI_var_clientInitDone")}; call TDI_fnc_stopTdIconsClient;};}] remoteExecCall ["spawn", 0];
-        };
-    };
+    removeMissionEventHandler ["EntityCreated", TDI_var_entityCreatedEhId];
+    removeMissionEventHandler ["EntityKilled", TDI_var_entityKilledEhId];
+    TDI_var_entityCreatedEhId = -1;
+    TDI_var_entityKilledEhId = -1;
+
+    [[], {
+        if (!hasInterface) exitWith {};
+        waitUntil {!isNil "TDI_var_clientInitDone"};
+        call TDI_fnc_stopTdIconsClient;
+    }] remoteExecCall ["spawn", 0];
 };
 
 TDI_var_serverInitDone = true;

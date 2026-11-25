@@ -1,0 +1,5 @@
+ais|AIS
+vaOverride|vaOverride
+modLoader|modsIntegrated
+ui|ui
+warfare|SC

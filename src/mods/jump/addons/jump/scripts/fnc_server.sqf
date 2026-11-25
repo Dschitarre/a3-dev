@@ -1,33 +1,39 @@
+// Jump (server): jump speed setting; starts / stops the jump key on every client, including JIP.
+
 J_var_remoteExecId = "";
 
-J_var_JumpSpeed = 1;
-publicVariable "J_var_JumpSpeed";
+J_var_jumpSpeed = 1;
+publicVariable "J_var_jumpSpeed";
 
 J_fnc_startJumpServer = {
-    call {
-        if !isMultiplayer then {
-            call J_fnc_startJumpClient;
-        } else {
-            if (J_var_remoteExecId == "") then {
-                J_var_remoteExecId = [[], {if hasInterface then {waitUntil {!(isNil "J_var_clientInitDone")}; call J_fnc_startJumpClient;};}] remoteExecCall ["spawn", 0, true];
-            };
-        };
+    if (!isMultiplayer) exitWith {
+        call J_fnc_startJumpClient;
     };
+
+    if (J_var_remoteExecId != "") exitWith {};
+
+    J_var_remoteExecId = [[], {
+        if (!hasInterface) exitWith {};
+        waitUntil {!isNil "J_var_clientInitDone"};
+        call J_fnc_startJumpClient;
+    }] remoteExecCall ["spawn", 0, true];
 };
 
 J_fnc_stopJumpServer = {
-    call {
-        if !isMultiplayer then {
-            call J_fnc_stopJumpClient;
-        } else {
-            if (J_var_remoteExecId != "") then {
-                remoteExecCall ["", J_var_remoteExecId];
-                J_var_remoteExecId = "";
-
-                [[], {if hasInterface then {waitUntil {!(isNil "J_var_clientInitDone")}; call J_fnc_stopJumpClient;};}] remoteExecCall ["spawn", 0];
-            };
-        };
+    if (!isMultiplayer) exitWith {
+        call J_fnc_stopJumpClient;
     };
+
+    if (J_var_remoteExecId == "") exitWith {};
+
+    remoteExecCall ["", J_var_remoteExecId];
+    J_var_remoteExecId = "";
+
+    [[], {
+        if (!hasInterface) exitWith {};
+        waitUntil {!isNil "J_var_clientInitDone"};
+        call J_fnc_stopJumpClient;
+    }] remoteExecCall ["spawn", 0];
 };
 
 J_var_serverInitDone = true;

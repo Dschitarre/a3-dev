@@ -1,15 +1,9 @@
 class CfgPatches {
     class holster {
         units[] = {"moduleHolster"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleHolster: NO_CATEGORY {
-        displayName = "Holster";
     };
 };
 
@@ -18,17 +12,10 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
-            class Combo;
-            class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleHolster: Module_F {
@@ -42,7 +29,6 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleHolster";
 
         class Attributes: AttributesBase {
             class ModuleDescription: ModuleDescription {};
@@ -56,16 +42,17 @@ class CfgVehicles {
 };
 
 class CfgFunctions {
-    class holster {
-        class main {
-            file = "holster\scripts";
-        };
-    };
-
     class H {
         class NO_CATEGORY {
-            file = "\holster\functions";
+            file = "\holster";
             class moduleHolster {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class holster {
+        init = "[false] call compile preprocessFileLineNumbers 'holster\scripts\cbaSettings.sqf'";
     };
 };

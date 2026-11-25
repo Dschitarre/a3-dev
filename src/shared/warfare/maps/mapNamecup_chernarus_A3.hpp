@@ -1,0 +1,45 @@
+class MapName {
+    title = "Map";
+    values[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37};
+    texts[] = {
+        "Random",
+        "Zelenogorsk (Medium)",
+        "Chernogorsk (Large)",
+        "Elektrozavodsk (Medium)",
+        "Berezino (Large)",
+        "Svetyolarsk (Small)",
+        "Krasnostav & North East Airstrip (Large)",
+        "Novodmitrovsk & Cernaya Polana (Large)",
+        "Severograd (Large)",
+        "Novaya Petrovka (Large)",
+        "Tisy Military Base (Medium)",
+        "Pavlovo & Pavlovo Military Base (Medium)",
+        "Balota & Balota Airstrip (Medium)",
+        "Vybor (Medium)",
+        "Stary Sobor (Small)",
+        "Pustoshka (Small)",
+        "Gorka (Small)",
+        "Kamensk Military Base (Small)",
+        "Kamyshovo (Small)",
+        "Dubrovka (Medium)",
+        "Polana (Small)",
+        "Staroye (Medium)",
+        "Solnichniy (Small)",
+        "Mogilevka (Medium)",
+        "Komarovo (Small)",
+        "Kamenka (Small)",
+        "Kamensk (Medium)",
+        "Stary Yar (Medium)",
+        "Nagornoe (Small)",
+        "Grishino (Medium)",
+        "Kabanino (Small)",
+        "Novy Sobor (Small)",
+        "Lopatino (Medium)",
+        "Severgino (Medium)",
+        "North West Airfield (Large)",
+        "Vavilovo (Medium)",
+        "Karmanovka (Medium)",
+        "Chernarus (Huge)"
+    };
+    default = 0;
+};

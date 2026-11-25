@@ -1,0 +1,2 @@
+GG\maps\mapData.hpp
+GG\maps\mapName.hpp

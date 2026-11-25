@@ -1,52 +1,46 @@
-AH_var_serverRunning = nil;
+// Auto heal (server): heal settings; starts / stops healing on every machine, including JIP.
+
+AH_var_serverRunning = false;
 AH_var_remoteExecId = "";
 
-AH_var_HealSpeed = 1;
-AH_var_HealCooldownMedic = 8;
-AH_var_HealCoolDown = 12;
+AH_var_healSpeed = 1;
+AH_var_healCooldownMedic = 8;
+AH_var_healCooldown = 12;
 
-publicVariable "AH_var_HealSpeed";
-publicVariable "AH_var_HealCooldownMedic";
-publicVariable "AH_var_HealCoolDown";
-
-AH_fnc_setDamageServer = {
-    params ["_unit", "_newDamage", "_newHitPointsDamage"];
-
-    if (local _unit) then {
-        _this call AH_fnc_setDamageClientServer;
-    } else {
-        _this remoteExecCall ["AH_fnc_setDamageClientServer", _unit];
-    };
-};
+publicVariable "AH_var_healSpeed";
+publicVariable "AH_var_healCooldownMedic";
+publicVariable "AH_var_healCooldown";
 
 AH_fnc_startAutoHealServer = {
-    call {
-        if !isMultiplayer then {
-            call AH_fnc_startAutoHealClientServer;
-        } else {
-            if (isNil "AH_var_serverRunning") then {
-                AH_var_serverRunning = true;
-                AH_var_remoteExecId = [[], {waitUntil {!(isNil "AH_var_clientServerInitDone")}; call AH_fnc_startAutoHealClientServer;}] remoteExecCall ["spawn", 0, true];
-            };
-        };
+    if (!isMultiplayer) exitWith {
+        call AH_fnc_startAutoHealClientServer;
     };
+
+    if (AH_var_serverRunning) exitWith {};
+
+    AH_var_serverRunning = true;
+    AH_var_remoteExecId = [[], {
+        waitUntil {!isNil "AH_var_clientServerInitDone"};
+        call AH_fnc_startAutoHealClientServer;
+    }] remoteExecCall ["spawn", 0, true];
 };
 
 AH_fnc_stopAutoHealServer = {
-    call {
-        if !isMultiplayer then {
-            call AH_fnc_stopAutoHealClientServer;
-        } else {
-            if !(isNil "AH_var_serverRunning") then {
-                AH_var_serverRunning = nil;
-
-                remoteExec ["", AH_var_remoteExecId];
-                AH_var_remoteExecId = "";
-
-                [{if !(isNil "AH_var_clientServerInitDone") then {call AH_fnc_stopAutoHealClientServer};}] remoteExecCall ["call", 0];
-            };
-        };
+    if (!isMultiplayer) exitWith {
+        call AH_fnc_stopAutoHealClientServer;
     };
+
+    if (!AH_var_serverRunning) exitWith {};
+
+    AH_var_serverRunning = false;
+    remoteExec ["", AH_var_remoteExecId];
+    AH_var_remoteExecId = "";
+
+    [[], {
+        if (!isNil "AH_var_clientServerInitDone") then {
+            call AH_fnc_stopAutoHealClientServer;
+        };
+    }] remoteExecCall ["call", 0];
 };
 
 AH_var_serverInitDone = true;

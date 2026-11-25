@@ -1,15 +1,20 @@
-if isServer then {
-    _client = compile preprocessFileLineNumbers "killfeed\scripts\fnc_client.sqf";
-    _clientServer = compile preprocessFileLineNumbers "killfeed\scripts\fnc_clientServer.sqf";
-    _server = compile preprocessFileLineNumbers "killfeed\scripts\fnc_server.sqf";
+// Loads this mod's scripts on the server (once per mission) and sends the client parts to every
+// other machine, including JIP. Not shipped into missions (they load the fnc_*.sqf files directly).
+if (!isServer || {!isNil "KF_var_modInitDone"}) exitWith {};
+KF_var_modInitDone = true;
 
-    if hasInterface then {
-        call _client;
-    };
+private _client = compile preprocessFileLineNumbers "killfeed\scripts\fnc_client.sqf";
+private _clientServer = compile preprocessFileLineNumbers "killfeed\scripts\fnc_clientServer.sqf";
+private _server = compile preprocessFileLineNumbers "killfeed\scripts\fnc_server.sqf";
 
-    call _clientServer;
-    call _server;
-    
-    [_client, {if (!isServer && {hasInterface}) then {call _this;};}] remoteExecCall ["call", -2, true];
-    [_clientServer, {if !isServer then {call _this;};}] remoteExecCall ["call", -2, true];
+// the part for every machine first (as in missions that integrate the mod): the client part uses it
+call _clientServer;
+
+if (hasInterface) then {
+    call _client;
 };
+
+call _server;
+
+[_clientServer, {if (!isServer) then {call _this;};}] remoteExecCall ["call", -2, true];
+[_client, {if (!isServer && {hasInterface}) then {call _this;};}] remoteExecCall ["call", -2, true];

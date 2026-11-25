@@ -1,93 +1,62 @@
-KF_var_nextProjectileId = 0;
+// Killfeed, every machine (server and clients): event handlers on all units and vehicles, and the text size and name
+// format the server's texts and the clients' drawing share. Hits are captured where the shot is local (projectile
+// event handlers on the shooter's machine), damage without a projectile where the victim is local; both are sent to
+// the server.
 
-KF_fnc_getMineMagazine = {
-    params ["_mine"];
+KF_var_ammoTraits = createHashMap;   // ammo class -> [explodes, has submunitions]
+KF_var_pendingHits = [];             // hits of the current frame, sent to the server in one message
+KF_var_textSizeCells = 0.8;          // text size of all feeds in GUI grid cells: as large as the HUD texts of the missions
+KF_var_maxNameLength = 20;           // characters of a name in the feeds; longer names are cut with "..."
+KF_var_aiNameSuffix = " (AI)";
 
-    _mineConfig = configOf _mine;
-    _mineMagazine = getText (_mineConfig >> "defaultMagazine");
+// ---- names in the feeds ----
 
-    if (_mineMagazine == "") then {
-        {
-            _mineMagazine = getText (_x >> "defaultMagazine");
+KF_fnc_replaceAll = {
+    params ["_text", "_search", "_replacement"];
 
-            if (_mineMagazine != "") exitWith {};
-        } forEach ([_mineConfig] call BIS_fnc_returnParents);
+    private _result = "";
+    private _index = _text find _search;
+
+    while {_index != -1} do {
+        _result = _result + (_text select [0, _index]) + _replacement;
+        _text = _text select [_index + count _search];
+        _index = _text find _search;
     };
 
-    _mineMagazine
+    _result + _text
 };
 
-KF_fnc_deregisterProjectile = {
-    params ["_shooter", "_vehicle", "", "_projectileId"];
+// A name as the feeds show it: cut to KF_var_maxNameLength characters with "..." (an AI suffix is kept) and escaped
+// for structured text. The server builds the name tags with it and the clients their highlighted names, so
+// KF_fnc_colorize still finds cut names.
+KF_fnc_formatName = {
+    params ["_name"];
 
-    _projectilesShooter = _shooter getVariable ["KF_var_firedProjectiles", []];
-    _projectilesShooter deleteAt (_projectilesShooter findIf {(_x select 0) isEqualTo _projectileId});
-    _shooter setVariable ["KF_var_firedProjectiles", _projectilesShooter];
+    // characters, not bytes (string commands count bytes): names may contain umlauts
+    private _characters = toArray _name;
+    private _suffix = "";
+    private _suffixStart = count _characters - count toArray KF_var_aiNameSuffix;
 
-    if !(isNull _vehicle) then {
-        _projectilesVehicle = _vehicle getVariable ["KF_var_firedProjectiles", []];
-        _projectilesVehicle deleteAt (_projectilesVehicle findIf {(_x select 0) isEqualTo _projectileId});
-        _vehicle setVariable ["KF_var_firedProjectiles", _projectilesVehicle];
+    if (_suffixStart > 0 && {(toString (_characters select [_suffixStart])) isEqualTo KF_var_aiNameSuffix}) then {
+        _suffix = KF_var_aiNameSuffix;
+        _characters resize _suffixStart;
     };
-};
 
-KF_fnc_projectileDeleted = {
-    params ["_projectile"];
-
-    _shooter = _projectile getVariable ["KF_var_shooter", objNull];
-    _vehicle = _projectile getVariable ["KF_var_vehicle", objNull];
-    _timeUntilDeletion = _projectile getVariable ["KF_var_timeUntilDeletion", -1];
-    _projectileId = _projectile getVariable ["KF_var_projectileId", -1];
-
-    [_shooter, _vehicle, _timeUntilDeletion, _projectileId] spawn {
-        params ["", "", "_timeUntilDeletion"];
-        sleep _timeUntilDeletion;
-        _this call KF_fnc_deregisterProjectile;
+    if (count _characters > KF_var_maxNameLength) then {
+        _name = (trim toString (_characters select [0, KF_var_maxNameLength - 3])) + "..." + _suffix;
     };
+
+    // after the cut, so it never splits an entity
+    {
+        _x params ["_character", "_entity"];
+
+        _name = [_name, _character, _entity] call KF_fnc_replaceAll;
+    } forEach [["&", "&amp;"], ["<", "&lt;"], [">", "&gt;"]];
+
+    _name
 };
 
-KF_fnc_firedMan = {
-    if (isNil {(_this select 6) getVariable "KF_var_shooter"}) then {
-        params ["_unit", "_weapon", "", "", "_ammo", "_magazine", "_projectile", "_vehicle"];
-        
-        _vehicleType = typeOf _vehicle;
-
-        if (isNull _projectile) then {
-            _projectile = nearestObject [(if (isNull _vehicle) then {_unit} else {_vehicle}), _ammo];
-        };
-
-        _shooter = _unit;
-        _shotParents = getShotParents _projectile;
-
-        if !(_shotParents isEqualTo []) then {
-            _shooter = _shotParents select 1;
-        };
-
-        ([_weapon] call BIS_fnc_itemType) params ["_weaponCategory", "_weaponType"];
-
-        _timeUntilDeletion = if ((_weaponCategory == "Weapon") && {_weaponType == "Shotgun"}) then {10} else {2};
-        
-        _projectileId = KF_var_nextProjectileId;
-        KF_var_nextProjectileId = KF_var_nextProjectileId + 1;
-
-        _projectile setVariable ["KF_var_shooter", _shooter];
-        _projectile setVariable ["KF_var_vehicle", _vehicle];
-        _projectile setVariable ["KF_var_timeUntilDeletion", _timeUntilDeletion];
-        _projectile setVariable ["KF_var_projectileId", _projectileId];
-
-        _projectile addEventHandler ["Deleted", {_this call KF_fnc_projectileDeleted;}];
-
-        _projectilesShooter = _shooter getVariable ["KF_var_firedProjectiles", []];
-        _projectilesShooter pushBack [_projectileId, _projectile, _weapon, _ammo, _magazine, _vehicleType, objNull];
-        _shooter setVariable ["KF_var_firedProjectiles", _projectilesShooter];
-
-        if !(isNull _vehicle) then {
-            _projectilesVehicle = _vehicle getVariable ["KF_var_firedProjectiles", []];
-            _projectilesVehicle pushBack [_projectileId, _projectile, _weapon, _ammo, _magazine, _vehicleType, _shooter];
-            _vehicle setVariable ["KF_var_firedProjectiles", _projectilesVehicle];
-        };
-    };
-};
+// ---- helpers (also used by the game modes) ----
 
 KF_fnc_isTypeUnmanned = {
     params ["_type"];
@@ -98,280 +67,188 @@ KF_fnc_isTypeUnmanned = {
 KF_fnc_isUavAi = {
     params ["_unit"];
 
-    "UAV_AI" in (typeOf _unit)
+    "UAV_AI" in typeOf _unit
 };
 
-KF_fnc_UAVControl = {
-    params ["_unit", "_mode", ["_altMode", ""]];
-    _ret = objNull;
+// The color key of a side. Texts carry color keys ('kf:west', 'kf:you', ...), each client fills in its own
+// profile colors when it draws them (KF_fnc_colorize).
+KF_fnc_sideColorKey = {
+    params [["_side", sideUnknown]];
 
-    _UAVControl = UAVControl _unit;
-    _UAVControls = [_UAVControl select [0, 2]];
-
-    if ((count _UAVControl) == 4) then {
-        _UAVControls pushBack (_UAVControl select [2, 2]);
-    };
-
-    _pos = (_UAVControls apply {_x select 1}) find _mode;
-
-    if (_pos != -1) then {
-        _ret = (_UAVControls select _pos) select 0;
-    } else {
-        if (_altMode != "") then {
-            _pos = (_UAVControls apply {_x select 1}) find _altMode;
-
-            if (_pos != -1) then {
-                _ret = (_UAVControls select _pos) select 0;
-            };
-        };
-    };
-
-    _ret
+    switch (_side) do {
+        case west: {"kf:west"};
+        case east: {"kf:east"};
+        case independent: {"kf:guer"};
+        case civilian: {"kf:civ"};
+        default {"kf:unknown"};
+    }
 };
 
-KF_fnc_HitPart = {
-    params ["_target", "_shooter", "_bullet", "_selections", "_ammo"];
-    
-    _magazine = "";
-    _distance = -1;
-    _source = "";
+// The side color on a client (from its profile). The server, whose texts are shown on the clients, gets the color key.
+KF_fnc_getSidesHexColor = {
+    params [["_side", sideUnknown]];
 
-    if (!(isNull _shooter) && {!(_target isEqualTo _shooter)}) then {
-        _distance = _target distance _shooter;
-    };
+    private _key = [_side] call KF_fnc_sideColorKey;
 
-    if !(isNull _bullet) then {
-        (getShotParents _bullet) params ["_vehicle", "_instigator"];
+    if (isServer || {isNil "KF_var_colors"}) exitWith {_key};
 
-        if (_ammo == "") then {
-            _ammo = typeOf _bullet;
-        };
-
-        if !(isNull _instigator) then {
-            _shooter = _instigator;
-        } else {
-            if (!(isNull _vehicle) && {isNull _shooter}) then {
-                _shooter = _vehicle;
-            };
-        };
-
-        if (!(isNull _vehicle) && {!(_vehicle isKindOf "CAManBase")}) then {
-            _source = typeOf _vehicle;
-        };
-    };
-
-    if (_bullet isKindOf "TimeBombCore") then {
-        if (isNull _shooter) then {
-            _shooter = _target;
-        };
-
-        _magazine = [_bullet] call KF_fnc_getMineMagazine;
-        _source = "Put";
-    };
-
-    if (isNull _shooter) exitWith {};
-
-    _parOrParShooter = if (_shooter isKindOf "CAManBase") then {objectParent _shooter} else {_shooter};
-
-    if ((unitIsUav _parOrParShooter) && {(_parOrParShooter isEqualTo _shooter) || {[_shooter] call KF_fnc_isUavAi}}) then {
-        _source = typeOf _parOrParShooter;
-        _uavCtrlVehicleShooter = [_parOrParShooter, "GUNNER", "DRIVER"] call KF_fnc_UAVControl;
-
-        if (isNull _uavCtrlVehicleShooter) then {
-            _shooter = _parOrParShooter;
-        } else {
-            _shooter = _uavCtrlVehicleShooter;
-        };
-    };
-
-    if ((_distance == -1) && {!(isNull _parOrParShooter)} && {!(_target isEqualTo _parOrParShooter)})then {
-        _distance = _target distance _parOrParShooter;
-    };
-
-    _shooterIsUnitOrUav = (_shooter isKindOf "CAManBase") || {unitIsUav _shooter};
-
-    if ((_source == "") || {_ammo == ""} || {_magazine == ""} || {!_shooterIsUnitOrUav}) then {
-        _projectiles = _shooter getVariable ["KF_var_firedProjectiles", []];
-
-        if (!_shooterIsUnitOrUav && {!(_parOrParShooter isEqualTo _shooter)}) then {
-            _projectiles = _projectiles + (_parOrParShooter getVariable ["KF_var_firedProjectiles", []]);
-        };
-
-        _uavUnitShooter = getConnectedUAVUnit _shooter;
-    
-        if !(isNull _uavUnitShooter) then {
-            _projectiles = _projectiles + (_uavUnitShooter getVariable ["KF_var_firedProjectiles", []]);
-        };
-
-        _foundProjectile = [];
-
-        if !(isNull _bullet) then {
-            _pos = _projectiles findIf {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {!(isNull (_x select 1)) && {(_x select 1) isEqualTo _bullet}}};
-
-            if (_pos != -1) then {
-                _foundProjectile = _projectiles select _pos;
-            };
-        };
-
-        if ((_foundProjectile isEqualTo []) && {_ammo != ""}) then {
-            _pos = _projectiles findIf (if ("Bomb" in _ammo) then {
-                {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {"Bomb" in (_x select 3)}};
-            } else {
-                {(_shooterIsUnitOrUav || {!(isNull (_x select 6))}) && {(_ammo in (_x select 3)) || {(_x select 3) in _ammo} || {((_x select 3) select [0,5]) == (_ammo select [0,5])}}};
-            });
-
-            if (_pos != -1) then {
-                _foundProjectile = _projectiles select _pos;
-            };
-        };
-
-        if !(_foundProjectile isEqualTo []) then {
-            _foundProjectile params ["", "", "_newWeapon", "_newAmmo", "_newMagazine", "_vehicleType", "_newShooter"];
-
-            if (_source == "") then {
-                if (_vehicleType != "") then {
-                    _source = _vehicleType;
-                } else {
-                    _source = _newWeapon;
-                };
-            };
-
-            if (_ammo == "") then {
-                _ammo = _newAmmo;
-            };
-
-            if (_magazine == "") then {
-                _magazine = _newMagazine;
-            };
-
-            if (!_shooterIsUnitOrUav && {!(isNull _newShooter)}) then {
-                _shooter = _newShooter;
-            };
-        };
-    };
-
-    if ((_source != "") && {_ammo != ""} && {_magazine != ""} && {(_shooter isKindOf "CAManBase") || {unitIsUav _shooter}}) then {
-        [_target, _shooter, _ammo, _magazine, _selections, _distance, _source] remoteExecCall ["KF_fnc_OnHit", 2];
-    };
+    KF_var_colors get _key
 };
 
-KF_fnc_GatherHitPart = {
-    _target = objNull;
-    _shooter = objNull;
-    _bullet = objNull;
-    _selections = [];
-    _ammo = "";
+// The player controlling the UAV seat of _crewUnit, else the player in the other seat, else the UAV itself.
+KF_fnc_getUavOperator = {
+    params ["_uav", "_crewUnit"];
 
-    {
-        if ((isNull _target) && {!(isNull (_x select 0))}) then {
-            _target = _x select 0;
-        };
+    private _control = UAVControl _uav;
+    private _roles = if ((driver _uav) isEqualTo _crewUnit) then {["DRIVER", "GUNNER"]} else {["GUNNER", "DRIVER"]};
+    private _index = _control find (_roles select 0);
 
-        if ((isNull _shooter) && {!(isNull (_x select 1))}) then {
-            _shooter = _x select 1;
-        };
-
-        if ((isNull _bullet) && {!(isNull (_x select 2))}) then {
-            _bullet = _x select 2;
-        };
-
-        _isDirect = _x select 10;
-
-        {
-            _selections pushBackUnique [_x, _isDirect];
-        } forEach (_x select 5);
-
-        if ((_ammo == "") && {((_x select 6) select 4) != ""}) then {
-            _ammo = (_x select 6) select 4;
-        };
-    } forEach _this;
-
-    if (isDamageAllowed _target) then {
-        [_target, _shooter, _bullet, _selections, _ammo] call KF_fnc_HitPart;
+    if (_index == -1) then {
+        _index = _control find (_roles select 1);
     };
+
+    if (_index < 1) exitWith {_uav};
+
+    _control select (_index - 1)
 };
 
-KF_fnc_AddHitPartClientServer = {
+// The person behind damage or a kill: the operator of a UAV, else the instigator, else the unit itself or the
+// driver of the vehicle (the engine reports road kills without instigator).
+KF_fnc_getInstigator = {
+    params ["_causedBy", "_instigator", "_victim"];
+
+    if (unitIsUAV _causedBy) exitWith {
+        if (_victim isEqualTo _causedBy) then {_causedBy} else {[_causedBy, driver _causedBy] call KF_fnc_getUavOperator}
+    };
+
+    if (!isNull _instigator) exitWith {_instigator};
+    if (_causedBy isKindOf "CAManBase") exitWith {_causedBy};
+
+    driver _causedBy
+};
+
+// ---- event handlers on every unit and vehicle ----
+// Event handlers stay on a respawned unit only where it is local, while its variables are copied everywhere. So each
+// handler checks that it is the one registered last (KF_var_eh<event>) and removes itself when it is a stale copy.
+
+KF_fnc_isCurrentHandler = {
+    params ["_entity", "_event", "_id"];
+
+    if ((_entity getVariable ("KF_var_eh" + _event)) isEqualTo _id) exitWith {true};
+
+    _entity removeEventHandler [_event, _id];
+    false
+};
+
+KF_fnc_setEventHandler = {
+    params ["_entity", "_event", "_code"];
+
+    _entity setVariable ["KF_var_eh" + _event, _entity addEventHandler [_event, _code]];
+};
+
+KF_fnc_addEntityEventHandlers = {
     params ["_entity"];
 
-    _id = _entity getVariable ["KF_var_hitPartEhId", -1];
-    if (_id != -1) then {_entity removeEventHandler ["HitPart", _id]};
-    _id = _entity addEventHandler ["HitPart", {_this call KF_fnc_GatherHitPart;}];
-    _entity setVariable ["KF_var_hitPartEhId", _id];
-};
+    if (isNull _entity || {!(_entity isKindOf "AllVehicles")} || {_entity isKindOf "Animal"}) exitWith {};
 
-KF_fnc_isVectorLessThan = {
-    params ["_v1", "_v2"];
-
-    _n = count _v1;
-    _isLess = false;
-
-    for "_i" from 0 to _n - 1 do {
-        if (_v1 select _i < _v2 select _i) exitWith {
-            _isLess = true;
+    // Observe the engine's projectile context without replacing damage or interfering with AIS/other handlers.
+    [_entity, "HandleDamage", {
+        params ["_entity", "", "", "_source", "_projectile"];
+        if (local _entity && {[_entity, "HandleDamage", _thisEventHandler] call KF_fnc_isCurrentHandler}) then {
+            _entity setVariable ["KF_var_damageContext", [diag_frameNo, _projectile, _source]];
         };
-    };
+        nil
+    }] call KF_fnc_setEventHandler;
 
-    _isLess
+    [_entity, "Hit", {
+        params ["_entity"];
+
+        if ([_entity, "Hit", _thisEventHandler] call KF_fnc_isCurrentHandler) then {
+            _this call KF_fnc_onDamage;
+        };
+    }] call KF_fnc_setEventHandler;
+
+    // fires where the healer is local
+    [_entity, "HandleHeal", {
+        params ["_entity"];
+
+        if ([_entity, "HandleHeal", _thisEventHandler] call KF_fnc_isCurrentHandler) then {
+            [_entity] spawn KF_fnc_watchHeal;
+        };
+
+        false
+    }] call KF_fnc_setEventHandler;
+
+    if !(_entity isKindOf "CAManBase") exitWith {};
+
+    [_entity, "FiredMan", {
+        params ["_unit"];
+
+        if (local _unit && {[_unit, "FiredMan", _thisEventHandler] call KF_fnc_isCurrentHandler}) then {
+            _this call KF_fnc_firedMan;
+        };
+    }] call KF_fnc_setEventHandler;
+
+    // the engine's rating changes are disabled, kills add rating instead (KF_fnc_addKillScores)
+    [_entity, "HandleRating", {
+        params ["_unit"];
+
+        [_unit, "HandleRating", _thisEventHandler] call KF_fnc_isCurrentHandler;
+        0
+    }] call KF_fnc_setEventHandler;
 };
 
-KF_fnc_handleHeal = {
+#include "hitCapture.sqf"
+
+// ---- healing: clears the hits collected on the server ----
+
+// runs where the healer is local; reports the heal once any hit point of the injured got better
+KF_fnc_watchHeal = {
     params ["_entity"];
 
-    _arr = getAllHitPointsDamage _entity;
-    if (_arr isEqualTo []) exitWith {};
-    _oldHitPointsDamage = _arr select 2;
+    private _oldDamage = (getAllHitPointsDamage _entity) param [2, []];
+
+    if (_oldDamage isEqualTo []) exitWith {};
+
+    private _timeout = time + 20;   // an interrupted heal never lowers the damage
 
     waitUntil {
-        _arr = getAllHitPointsDamage _entity;
-        if (_arr isEqualTo []) exitWith {true};
+        private _newDamage = (getAllHitPointsDamage _entity) param [2, []];
+        private _isHealed = false;
 
-        if (!((_arr select 2) isEqualTo _oldHitPointsDamage) && {[(_arr select 2), _oldHitPointsDamage] call KF_fnc_isVectorLessThan}) exitWith {
+        {
+            if (_x < (_oldDamage select _forEachIndex)) exitWith {
+                _isHealed = true;
+            };
+        } forEach _newDamage;
+
+        if (_isHealed) then {
             [_entity] remoteExecCall ["KF_fnc_entityHealed", 2];
-            true
         };
-        
-        false
+
+        _isHealed || {!alive _entity} || {time > _timeout} || {_newDamage isEqualTo []}
     };
 };
 
-KF_fnc_EntityInitClientServer = {
-    params ["_entity"];
-
-    if (isNil {_entity getVariable "KF_var_firedProjectiles"}) then {
-        _entity setVariable ["KF_var_firedProjectiles", []];
-    };
-    
-    _id = _entity getVariable ["KF_var_handleHealEhId", -1];
-    if (_id != -1) then {_entity removeEventHandler ["HandleHeal", _id]};
-    _id = _entity addEventHandler ["HandleHeal", {if (local (_this select 0)) then {_this spawn KF_fnc_handleHeal;}; false}];
-    _entity setVariable ["KF_var_handleHealEhId", _id];
-
-    if (_entity isKindOf "CAManBase") then {
-        _id = _entity getVariable ["KF_var_firedManEhId", -1];
-        if (_id != -1) then {_entity removeEventHandler ["FiredMan", _id]};
-        _id = _entity addEventHandler ["FiredMan", {if (local (_this select 0)) then {_this call KF_fnc_firedMan;};}];
-        _entity setVariable ["KF_var_firedManEhId", _id];
-
-        _id = _entity getVariable ["KF_var_handleRatingEhId", -1];
-        if (_id != -1) then {_entity removeEventHandler ["HandleRating", _id];};
-        _id = _entity addEventHandler ["HandleRating", {0}];
-        _entity setVariable ["KF_var_handleRatingEhId", _id];
-    };
-
-    [_entity] call KF_fnc_AddHitPartClientServer;
-};
+// ---- start: once the server started the killfeed ----
 
 [] spawn {
-    waitUntil {!(isNil "KF_var_running")};
+    waitUntil {!isNil "KF_var_running" && {KF_var_running}};
 
-    call {
-        if KF_var_running then {
-            {
-                [_x] call KF_fnc_EntityInitClientServer;
-            } forEach (entities [["AllVehicles"], ["Animal"], true, false]);
-        };
+    addMissionEventHandler ["EntityCreated", {
+        params ["_entity"];
 
-        KF_var_clientServerInitDone = true;
-    };
+        [_entity] call KF_fnc_addEntityEventHandlers;
+    }];
+
+    // after the variables were copied to the new unit (EntityCreated comes before that)
+    addMissionEventHandler ["EntityRespawned", {
+        params ["_newEntity"];
+
+        [_newEntity] call KF_fnc_addEntityEventHandlers;
+    }];
+
+    {
+        [_x] call KF_fnc_addEntityEventHandlers;
+    } forEach (entities [["AllVehicles"], ["Animal"], true, false]);
 };

@@ -1,15 +1,9 @@
 class CfgPatches {
     class mapmarker {
         units[] = {"moduleMapMarker"};
-        requiredVersion = 1;
+        weapons[] = {};
+        requiredVersion = 0.1;
         requiredAddons[] = {"A3_Modules_F"};
-    };
-};
-
-class CfgFactionClasses {
-    class NO_CATEGORY;
-    class moduleMapMarker: NO_CATEGORY {
-        displayName = "Map Marker";
     };
 };
 
@@ -18,17 +12,11 @@ class CfgVehicles {
 
     class Module_F: Logic {
         class AttributesBase {
-            class Default;
-            class Edit;
-            class Combo;
             class Checkbox;
-            class CheckboxNumber;
             class ModuleDescription;
         };
 
-        class ModuleDescription {
-            class AnyBrain;
-        };
+        class ModuleDescription;
     };
 
     class moduleMapMarker: Module_F {
@@ -42,83 +30,38 @@ class CfgVehicles {
         isTriggerActivated = 1;
         isDisposable = 0;
         is3DEN = 0;
-        curatorInfoType = "RscDisplayAttributeModuleMapMarker";
 
         class Attributes: AttributesBase {
-            class ShowAllSides: Combo {
+            class ShowAllSides: Checkbox {
                 property = "moduleMapMarker_showAllSides";
                 displayName = "Show all sides";
                 tooltip = "toggles whether units of all sides are displayed";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
-            class showAllSidesOnSpectator: Combo {
+            class showAllSidesOnSpectator: Checkbox {
                 property = "moduleMapMarker_showAllSidesOnSpectator";
                 displayName = "Show all sides when in spectator";
                 tooltip = "toggles whether units of all sides are displayed when in spectator";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
-            class showUnitNames: Combo {
+            class showUnitNames: Checkbox {
                 property = "moduleMapMarker_showUnitNames";
                 displayName = "Show Unit Names";
                 tooltip = "toggles whether to show the names of units";
-                typeName = "NUMBER";
-                defaultValue = "1";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "true";
             };
 
-            class showUnitNamesOnlyOnHover: Combo {
+            class showUnitNamesOnlyOnHover: Checkbox {
                 property = "moduleMapMarker_showUnitNamesOnlyOnHover";
                 displayName = "Show Unit Names only on Hover";
                 tooltip = "toggles whether to show the name of a unit only when hovering over it on the map";
-                typeName = "NUMBER";
-                defaultValue = "0";
-                
-                class Values {
-                    class Enabled {
-                        name = "Enabled";
-                        value = 1;
-                    };
-                    class Disabled {
-                        name = "Disabled";
-                        value = 0;
-                    };
-                };
+                typeName = "BOOL";
+                defaultValue = "false";
             };
 
             class ModuleDescription: ModuleDescription {};
@@ -132,16 +75,17 @@ class CfgVehicles {
 };
 
 class CfgFunctions {
-    class mapmarker {
-        class main {
-            file = "mapmarker\scripts";
-        };
-    };
-
     class MM {
         class NO_CATEGORY {
-            file = "\mapmarker\functions";
+            file = "\mapmarker";
             class moduleMapMarker {};
         };
+    };
+};
+
+// CBA is optional. The Eden module also works without it.
+class Extended_PreInit_EventHandlers {
+    class mapmarker {
+        init = "[false] call compile preprocessFileLineNumbers 'mapmarker\scripts\cbaSettings.sqf'";
     };
 };

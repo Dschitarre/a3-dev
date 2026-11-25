@@ -3,6 +3,10 @@ killfeed
 dynamicweather
 disablestamina
 disabletacticalview
+earplugs
 holster
 jump
+lagswitchdetection
+mapmarker
 autoheal
+magrepack

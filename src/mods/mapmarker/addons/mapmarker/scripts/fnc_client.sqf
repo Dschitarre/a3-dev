@@ -1,597 +1,607 @@
-MM_var_clientRunning = nil;
+// Map markers (client): unit, vehicle and parachute icons with names on the map, GPS, UAV terminal and camera
+// map. A background pass rebuilds the draw array while a map is drawn; the Draw handlers only place the icons.
 
-MM_var_drawEhIds = [];
-MM_var_uavTerminalLoopScript = scriptNull;
-MM_var_cameraMapDrawEHLoopScript = scriptNull;
+MM_var_clientRunning = false;
+MM_var_attachDrawLoopScript = scriptNull;
+MM_var_reportShownSidesLoopScript = scriptNull;
 MM_var_updateDrawArrayLoopScript = scriptNull;
 MM_var_updateDrawArrayScript = scriptNull;
 
+MM_var_frameBudget = 0.002;          // seconds of draw-array work per frame
+MM_var_drawArrayInterval = 0.2;      // minimum seconds between two draw-array passes
+MM_var_hoverRadius = 0.02;           // screen distance for "names only on hover"
+MM_var_font = "RobotoCondensed";     // GUI_FONT_NORMAL
+MM_var_emptyIcon = "#(argb,8,8,3)color(0,0,0,0)";   // invisible icon for texts drawn after all icons
+
+// Icons and texts have a constant size at every map zoom (user decision): the icons their fixed size in pixels, the
+// texts MM_var_textSizeFactor times their base size (1: the full size of the former zoom-dependent texts). The engine
+// enlarges drawIcon texts when zoomed in, so below the map scale MM_var_textZoomReference the text size is multiplied by
+// ((scale max MM_var_textZoomMinScale) / MM_var_textZoomReference) ^ MM_var_textZoomExponent; the label grouping
+// assumes the resulting constant on-screen size (the size at the reference scale). All these can be set by missions
+// before the mod loads and changed at any time (debug console, local): texts follow at once, icons and the label
+// grouping with the next draw-array pass.
+if (isNil "MM_var_textSizeFactor") then {
+    MM_var_textSizeFactor = 1.25;     // tuned in game
+};
+if (isNil "MM_var_iconSizeFactor") then {
+    MM_var_iconSizeFactor = 1.15;     // tuned in game
+};
+if (isNil "MM_var_vehicleIconSize") then {
+    MM_var_vehicleIconSize = 22;       // base size of every vehicle icon (before its area scale and MM_var_iconSizeFactor)
+};
+if (isNil "MM_var_parachuteIconSize") then {
+    MM_var_parachuteIconSize = 13;     // parachutes (before MM_var_iconSizeFactor; was 16, user: a bit smaller)
+};
+if (isNil "MM_var_textZoomReference") then {
+    MM_var_textZoomReference = 0.1;      // map scale from which on the engine leaves the text size as it is
+};
+if (isNil "MM_var_textZoomExponent") then {
+    MM_var_textZoomExponent = 1;         // measured in game: the engine enlarges the text like the zoom between the scales
+                                         // 0.1 and 0.05 (twice as large at 0.05) and keeps it constant outside
+};
+if (isNil "MM_var_textZoomMinScale") then {
+    MM_var_textZoomMinScale = 0.05;      // smallest scale the compensation follows (the old curve stopped there)
+};
+
+// overlapping labels (names) group on the map, not on the GPS: only the most relevant one is drawn, with the number of
+// units of the others (MM_fnc_groupLabels); the icons are always drawn
+if (isNil "MM_var_groupLabels") then {
+    MM_var_groupLabels = true;
+};
+MM_var_groupCellSize = 0.1;          // grid cell of the grouping in screen units (about two text lines)
+MM_var_groupCountSpace = "+99";      // room each label keeps for its group count
+MM_var_groupRescale = 0.1;           // relative map zoom change after which the labels group anew at once
+MM_var_groupScale = 0;               // map scale of the last grouping
+MM_var_groupHoverEntity = objNull;   // entity with a label nearest to the mouse (within MM_var_hoverRadius): grouped first
+MM_var_groupHoverChanged = false;    // it changed since the last grouping: group anew at once
+
+MM_var_bucketCheckInterval = 1;     // seconds between two checks for units that changed their side
+MM_var_bucketCheckTime = 0;
+MM_var_moveBlendTime = 0.5;          // seconds over which an icon glides from where it is shown onto a new server state
+MM_var_moveSnapDistance = 100;       // metres: an icon further away from a new server position jumps there
+MM_var_spectatorDisplay = 60492;     // RscDisplayEGSpectator
+
+// the map control of each display; 12 (map), 160 (UAV terminal), 314 (camera) and the EG spectator are full maps, 311
+// (GPS panel, an IGUI display) and map controls of game modes are minimaps. The camera and the EG spectator map show
+// all sides; the EG spectator draws units and crewed vehicles on its map itself, so there only the vehicles shown
+// while empty are added (MM_var_showWhenEmpty, below).
+MM_var_mapControlIdcs = createHashMapFromArray [[12, 51], [160, 51], [314, 3141], [311, 101], [MM_var_spectatorDisplay, 62609]];
+MM_var_fullMapIdds = [12, 160, 314, MM_var_spectatorDisplay];
+MM_var_allSidesMapIdds = [314, MM_var_spectatorDisplay];
+
+if (isNil "MM_var_posBroadcastInterval") then {
+    MM_var_posBroadcastInterval = 0.3;   // set by the server
+};
+
+if (isNil "MM_var_predictionTime") then {
+    MM_var_predictionTime = 3;           // set by the server
+};
+
+// ---- colors ----
+// Side colors: a fixed palette (clearer on the map than the vanilla defaults); MM_fnc_refreshColors is kept as the
+// single place that (re)builds MM_var_colors.
+
+MM_var_colorRefreshInterval = 5;
+MM_var_colorRefreshTime = 0;
+
+// fixed side colors (the mod's own palette, deliberately not the player's map color settings)
+MM_var_colorSources = createHashMapFromArray [
+    ["west", [0, 0.5, 1, 1]],
+    ["east", [1, 0, 0, 1]],
+    ["guer", [0, 0.8, 0.27, 1]],
+    ["civ", [0.75, 0.75, 0.75, 1]],
+    ["unknown", [0.75, 0.75, 0.75, 1]]
+];
+
+MM_var_sideKeys = createHashMapFromArray [[west, "west"], [east, "east"], [independent, "guer"], [civilian, "civ"]];
+
+MM_fnc_refreshColors = {
+    MM_var_colors = +MM_var_colorSources;
+    MM_var_colorDefault = MM_var_colors get "unknown";
+    MM_var_colorRefreshTime = diag_tickTime + MM_var_colorRefreshInterval;
+};
+
+call MM_fnc_refreshColors;
+
+// own unit (yellow) and group members (white), as before the UI rework
 MM_var_colorYellow = [1, 0.83, 0, 1];
 MM_var_colorWhite = [1, 1, 1, 1];
-MM_var_colorDefault = [0.75, 0.75, 0.75, 1];
 
-uiNamespace setVariable ["MM_var_currentDisplay", displayNull];
-uiNamespace setVariable ["MM_var_gpsDisplays", []];
+MM_fnc_sideColor = {
+    params ["_side"];
+
+    MM_var_colors get (MM_var_sideKeys getOrDefault [_side, "unknown"])
+};
+
+MM_fnc_unitSideColor = {
+    params ["_unit"];
+
+    [[_unit] call MM_fnc_unitSide] call MM_fnc_sideColor
+};
+
+uiNamespace setVariable ["MM_var_currentDisplay", controlNull];   // the map control drawn last
+
+// game modes add functions (argument: [scheduled]) that push their own entries into MM_var_preDrawArray;
+// entry format: [entity, isWithinObjectViewDistance, offsetToRight, calculateDir, icon, color, size, text,
+// shadow, textSize, alwaysShow, labelRelevance] - labelRelevance optional, only for text-only entries (size 0):
+// -1 (default) never groups, the text is always drawn (sector / base markers, ...); >= 0 the text is a label that
+// groups with overlapping labels: the most relevant one is drawn as "text +X" with the units of the others
+// (scale: MM_fnc_unitRelevance, units: MM_fnc_unitCount of the entity). Icons never group.
 MM_var_gatherDrawArrFncs = [];
+MM_var_preDrawArray = [];
+MM_var_drawArray = [];
 MM_var_lastDrawArrUpdateFrameNo = 0;
 MM_var_lastDrawFrameNo = 0;
 MM_var_gpsOpened = false;
+MM_var_spectatorMapOpened = false;
 MM_var_showUnitNamesOverride = true;
-MM_var_ShowAllSidesOverride = false;
-MM_var_drawArray = [];
-MM_var_preDrawArray = [];
+MM_var_showAllSidesOverride = false;
 
-{
-    missionNamespace setVariable [("MM_var_units" + (str _x)), []];
-} forEach [west, east, independent, civilian, sideEmpty, sideLogic, sideAmbientLife, sideUnknown];
+// Vehicles are drawn through their crew. A game mode can show a vehicle also without living crew: the public object
+// variable MM_var_showWhenEmpty (a side) draws it, while alive, for the viewers of that side (by the normal rules: GPS
+// area, hidden, all sides on the camera / spectator) in that side's color; MM_var_emptyLabel (optional, public) is
+// its label while empty, else the vehicle name. With crew it is drawn as any vehicle.
+
+// ---- helpers ----
 
 MM_fnc_isUavAi = {
     params ["_unit"];
-    
-    "UAV_AI" in (typeOf _unit)
+
+    "UAV_AI" in typeOf _unit
 };
 
-MM_fnc_getSideString = {
-    params ["_side"];
+// unconscious (AIS or vanilla revive)
+MM_fnc_isUnconscious = {
+    params ["_unit"];
 
-    if (_side != sideAmbientLife) then {
-        str _side
-    } else {
-        "AmbientLife"
-    }
+    (_unit getVariable ["AIS_unconscious", false]) || {lifeState _unit == "INCAPACITATED"}
 };
 
-MM_fnc_UAVControlUnits = {
+// dead or in the (EG) spectator; a unit under Zeus remote control is no spectator
+MM_fnc_isSpectator = {
+    !alive player || {!isNull findDisplay MM_var_spectatorDisplay}
+};
+
+MM_fnc_uavControlUnits = {
     params ["_vehicle", ["_onlyControlling", false]];
 
-    _UAVControl = UAVControl _vehicle;
-    _UAVControls = [_UAVControl select [0, 2]];
+    private _uavControl = UAVControl _vehicle;
+    private _controls = [_uavControl select [0, 2]];
 
-    if ((count _UAVControl) == 4) then {
-        _UAVControls pushBack (_UAVControl select [2, 2]);
+    if (count _uavControl == 4) then {
+        _controls pushBack (_uavControl select [2, 2]);
     };
 
-    if _onlyControlling then {
-        (_UAVControls select {(_x select 1) != ""}) apply {_x select 0}
+    if (_onlyControlling) then {
+        (_controls select {(_x select 1) != ""}) apply {_x select 0}
     } else {
-        (_UAVControls select {!(isNull (_x select 0))}) apply {_x select 0}
+        (_controls select {!isNull (_x select 0)}) apply {_x select 0}
     }
 };
 
+// the unit controlling the UAV in _mode (e.g. "DRIVER"), else in _altMode
+MM_fnc_uavControl = {
+    params ["_vehicle", "_mode", ["_altMode", ""]];
+
+    private _uavControl = UAVControl _vehicle;
+    private _controls = [_uavControl select [0, 2]];
+
+    if (count _uavControl == 4) then {
+        _controls pushBack (_uavControl select [2, 2]);
+    };
+
+    private _seats = _controls apply {_x select 1};
+    private _index = _seats find _mode;
+
+    if (_index == -1 && {_altMode != ""}) then {
+        _index = _seats find _altMode;
+    };
+
+    if (_index == -1) then {objNull} else {(_controls select _index) select 0}
+};
+
+// the unit the map is shown for: the focused unit, for a UAV view its operator
+MM_fnc_viewUnit = {
+    if (unitIsUAV focusOn) then {[objectParent focusOn, "DRIVER", "GUNNER"] call MM_fnc_uavControl} else {focusOn}
+};
+
+// the sides whose units are shown for _unit: its own, or all (setting, spectator, camera map)
+MM_fnc_shownSides = {
+    params ["_unit"];
+
+    if (MM_var_showAllSidesOverride || {MM_var_showAllSides} || {MM_var_showAllSidesOnSpectator && {call MM_fnc_isSpectator}}) exitWith {
+        [west, east, independent, civilian]
+    };
+
+    [[_unit] call MM_fnc_unitSide]
+};
+
+// crew of a vehicle; for a UAV its operators instead of the UAV AI
 MM_fnc_getCrew = {
     params ["_vehicle"];
 
-    _crew = [];
+    if (!unitIsUAV _vehicle) exitWith {crew _vehicle};
 
-    if (unitIsUav _vehicle) then {
-        _crew = (crew _vehicle) select {!([_x] call MM_fnc_isUavAi)};
-        
-        {
-            _crew pushBackUnique _x;
-        } forEach ([_vehicle] call MM_fnc_UAVControlUnits);
-    } else {
-        _crew = crew _vehicle;
-    };
+    private _crew = (crew _vehicle) select {!([_x] call MM_fnc_isUavAi)};
+
+    {
+        _crew pushBackUnique _x;
+    } forEach ([_vehicle] call MM_fnc_uavControlUnits);
 
     _crew
 };
 
+// game modes may replace this
 MM_fnc_getGroupUnits = {
     params ["_unit"];
 
-    (units (group _unit))
+    units group _unit
 };
 
-MM_fnc_isPosVisibleOnGPS = {
-    params ["_ctrlGPS", "_posWorld"];
+MM_fnc_isPosVisibleOnGps = {
+    params ["_ctrlGps", "_posWorld"];
 
-    if (isNull _ctrlGPS) exitWith {false};
+    if (isNull _ctrlGps) exitWith {false};
 
-    (ctrlMapPosition _ctrlGPS) params ["_posXGPSMap", "_posYGPSMap", "_widthGPSMap", "_heightGPSMap"];
-    (_ctrlGPS ctrlMapWorldToScreen _posWorld) params ["_posXGui", "_posYGui"];
+    (ctrlMapPosition _ctrlGps) params ["_mapX", "_mapY", "_mapWidth", "_mapHeight"];
+    (_ctrlGps ctrlMapWorldToScreen _posWorld) params ["_screenX", "_screenY"];
 
-    _posXOnGPS = 0.012771 - ((_posXGPSMap - _posXGui) / _widthGPSMap);
-    _posYOnGPS = 1.128351 + ((_posYGPSMap - _posYGui) / _heightGPSMap);
+    private _gpsX = 0.012771 - ((_mapX - _screenX) / _mapWidth);
+    private _gpsY = 1.128351 + ((_mapY - _screenY) / _mapHeight);
 
-    (
-        _posXOnGPS >= 0 &&
-        {_posXOnGPS <= 1} &&
-        {_posYOnGPS >= 0} &&
-        {_posYOnGPS <= 1}
-    )
+    _gpsX >= 0 && {_gpsX <= 1} && {_gpsY >= 0} && {_gpsY <= 1}
 };
 
-MM_fnc_getTeamMapColor = {
+// weapon class -> BIS_fnc_itemType type ("MachineGun", "SniperRifle", ...), cached
+MM_var_weaponTypes = createHashMap;
+
+MM_fnc_weaponType = {
+    params ["_weapon"];
+
+    private _type = MM_var_weaponTypes get _weapon;
+
+    if (isNil "_type") then {
+        _type = ([_weapon] call BIS_fnc_itemType) select 1;
+        MM_var_weaponTypes set [_weapon, _type];
+    };
+
+    _type
+};
+
+// ---- names ----
+// Built here from the unit's name and whether a player controls it - both change when a player takes over an AI
+// unit or hands it back. A game mode may set its own name (MM_var_name); a dead unit keeps the controller of its death.
+
+// player name, or a short AI name: "John Doe" -> "J. Doe (AI)", "Jean-Luc Picard" -> "J.-L. Picard (AI)"
+MM_fnc_formatName = {
+    params ["_name", "_isPlayer"];
+
+    if (_isPlayer) exitWith {_name};
+
+    private _nameParts = _name splitString " ";
+
+    if (count _nameParts > 1) then {
+        private _firstNames = (_nameParts select 0) splitString "-";
+        private _lastName = _nameParts select 1;
+
+        _name = if (count _firstNames > 1) then {
+            ((_firstNames select 0) select [0, 1]) + ".-" + ((_firstNames select 1) select [0, 1]) + ". " + _lastName
+        } else {
+            ((_nameParts select 0) select [0, 1]) + ". " + _lastName
+        };
+    };
+
+    _name + " (AI)"
+};
+
+// the shown name of a unit, cached per name and controller
+MM_fnc_unitName = {
+    params ["_unit"];
+
+    if (isNull _unit) exitWith {""};
+
+    private _override = _unit getVariable "MM_var_name";
+
+    if (!isNil "_override") exitWith {_override};
+
+    private _isPlayer = if (alive _unit) then {isPlayer _unit} else {_unit getVariable ["MM_var_wasPlayer", isPlayer _unit]};
+    private _source = [name _unit, _isPlayer];
+
+    (_unit getVariable ["MM_var_nameCache", [[], ""]]) params ["_cachedSource", "_cachedName"];
+
+    if (_source isEqualTo _cachedSource) exitWith {_cachedName};
+    if ((_source select 0) == "") exitWith {""};
+
+    private _name = _source call MM_fnc_formatName;
+
+    _unit setVariable ["MM_var_nameCache", [_source, _name]];
+    _name
+};
+
+// ---- unit lists ----
+// One list per side (MM_var_units<side>), filled when the server announces a unit, emptied by "Deleted" and kept
+// up to date when a unit changes its side (e.g. a player taking over a unit of another group).
+
+MM_var_bucketSides = [west, east, independent, civilian, sideEmpty, sideLogic, sideAmbientLife, sideUnknown];
+
+MM_fnc_getSideString = {
     params ["_side"];
 
-    switch _side do {
-        case west: {[0, 0.5, 1, 1]};
-        case east: {[1, 0, 0, 1]};
-        case independent: {[0, 0.8, 0.27, 1]};
-        default {[0.75, 0.75, 0.75, 1]};
-    }
+    if (_side == sideAmbientLife) then {"AmbientLife"} else {str _side}
 };
 
-MM_fnc_UAVControl = {
-    params ["_unit", "_mode", ["_altMode", ""]];
-    _ret = objNull;
+MM_fnc_resetUnitBuckets = {
+    {
+        missionNamespace setVariable ["MM_var_units" + ([_x] call MM_fnc_getSideString), []];
+    } forEach MM_var_bucketSides;
 
-    _UAVControl = UAVControl _unit;
-    _UAVControls = [_UAVControl select [0, 2]];
-
-    if ((count _UAVControl) == 4) then {
-        _UAVControls pushBack (_UAVControl select [2, 2]);
-    };
-
-    _pos = (_UAVControls apply {_x select 1}) find _mode;
-
-    if (_pos != -1) then {
-        _ret = (_UAVControls select _pos) select 0;
-    } else {
-        if (_altMode != "") then {
-            _pos = (_UAVControls apply {_x select 1}) find _altMode;
-
-            if (_pos != -1) then {
-                _ret = (_UAVControls select _pos) select 0;
-            };
-        };
-    };
-
-    _ret
+    MM_var_emptyShownVehicles = [];   // vehicles with MM_var_showWhenEmpty
 };
 
-MM_fnc_updateDrawArray = {
-    params ["_sleep"];
+call MM_fnc_resetUnitBuckets;
 
-    _unit = if !(unitIsUAV focusOn) then {focusOn} else {[(objectParent focusOn), "DRIVER", "GUNNER"] call MM_fnc_UAVControl};
-    _isInSpectator = !(_unit isEqualTo player);
-    _group = group _unit;
-    _groupUnits = [_unit] call MM_fnc_getGroupUnits;
-    _side = _unit getVariable ["MM_var_side", sideUnknown];
-    _objectViewDistance = if isServer then {-1} else {getObjectViewDistance select 0};
-    _camPos = if isServer then {[]} else {positionCameraToWorld [0, 0, 0]};
+// the side a unit is listed and colored for: its group's side while alive, else the side the server announced at
+// its init or death
+MM_fnc_unitSide = {
+    params ["_unit"];
+
+    if (alive _unit && {!isNull group _unit}) exitWith {side group _unit};
+
+    _unit getVariable ["MM_var_side", sideUnknown]
+};
+
+MM_fnc_addToBucket = {
+    params ["_unit", "_side"];
+
+    private _bucket = "MM_var_units" + ([_side] call MM_fnc_getSideString);
+    private _oldUnits = missionNamespace getVariable [_unit getVariable ["MM_var_unitsBucket", ""], []];
+    private _oldIndex = _oldUnits find _unit;
+
+    if (_oldIndex != -1) then {
+        _oldUnits deleteAt _oldIndex;
+    };
+
+    _unit setVariable ["MM_var_unitsBucket", _bucket];
+    (missionNamespace getVariable [_bucket, []]) pushBackUnique _unit;
+};
+
+// moves the units whose side changed into the list of their new side and drops deleted ones; collects the vehicles
+// shown while empty
+MM_fnc_updateUnitBuckets = {
+    if (diag_tickTime < MM_var_bucketCheckTime) exitWith {};
+
+    MM_var_bucketCheckTime = diag_tickTime + MM_var_bucketCheckInterval;
+    MM_var_emptyShownVehicles = vehicles select {(_x getVariable ["MM_var_showWhenEmpty", sideUnknown]) isNotEqualTo sideUnknown};
+
+    private _moved = [];
 
     {
-        {
-            if (
-                !(isNull _x) &&
-                {simulationEnabled _x} &&
-                {!MM_var_gpsOpened || {[(uiNamespace getVariable "MM_var_currentDisplay"), (getPosWorldVisual _x)] call MM_fnc_isPosVisibleOnGPS}} &&
-                {
-                    MM_var_showAliveGroupUnits ||
-                    {_x isEqualTo _unit} ||
-                    {!(_x in _groupUnits)} ||
-                    {!(alive _x)} ||
-                    {_x getVariable ["AIS_unconscious", false]}
-                }
-            ) then {
-                _parX = objectParent _x;
-                _isHidden = isObjectHidden _x;
+        private _side = _x;
+        private _bucket = "MM_var_units" + ([_side] call MM_fnc_getSideString);
+        private _units = missionNamespace getVariable _bucket;
+        private _kept = _units select {!isNull _x && {([_x] call MM_fnc_unitSide) == _side}};
 
-                if (isNull _parX) then {
-                    if !_isHidden then {
-                        _size = 20;
-                        _color = [];
-                        _icon = "";
-
-                        if (alive _x) then {
-                            _color = if (_x in _groupUnits) then {
-                                if (_x isEqualTo _unit) then {MM_var_colorYellow} else {MM_var_colorWhite}
-                            } else {
-                                _x getVariable ["MM_var_color", MM_var_colorDefault]
-                            };
-
-                            if (_x getVariable ["AIS_unconscious", false]) then {
-                                _size = 16.3;
-                                _icon = "pictureHeal";
-                            } else {
-                                _icon = if MM_var_restrictUnitIcons then {
-                                    if (_x getUnitTrait "Medic") then {"iconManMedic"} else {"iconMan"};
-                                } else {
-                                    switch true do {
-                                        case (_x getUnitTrait "Medic"): {"iconManMedic"};
-                                        case (_x getUnitTrait "Engineer"): {"iconManEngineer"};
-                                        case (_x getUnitTrait "ExplosiveSpecialist"): {"iconManExplosive"};
-                                        case ((((primaryWeapon _x) call BIS_fnc_itemType) select 1) == "MachineGun"): {"iconManMG"};
-                                        case ((((primaryWeapon _x) call BIS_fnc_itemType) select 1) == "SniperRifle"): {"iconManRecon"};
-                                        case ((secondaryWeapon _x) != ""): {"iconManAT"};
-                                        case (_x isEqualTo (leader (group _x))): {"iconManLeader"};
-                                        case ((rankId _x) >= 2): {"iconManOfficer"};
-                                        default {"iconMan"};
-                                    }
-                                };
-                            };
-                        } else {
-                            _size = 30;
-                            _color = if (_x isEqualTo _unit) then {MM_var_colorYellow} else {_x getVariable ["MM_var_color", MM_var_colorDefault]};
-                            _icon = "iconExplosiveGP";
-                        };
-
-                        _xIsWithinObjViewDistance = isServer || {(_x distance _camPos) <= _objectViewDistance};
-                        MM_var_preDrawArray pushBack [_x, _xIsWithinObjViewDistance, 0, !(_x getVariable ["AIS_unconscious", false]), _icon, _color, _size, "", 1, 0, true];
-
-                        if (MM_var_showUnitNamesOverride && {MM_var_showUnitNames}) then {
-                            MM_var_preDrawArray pushBack [_x, _xIsWithinObjViewDistance, 55, false, "iconMan", [1, 1, 1, 1], 0, (_x getVariable ["MM_var_name", ""]), 2, 0.0495, false];
-                        };
-                    };
-                } else {
-                    if (!_isHidden && {_parX isKindOf "Steerable_Parachute_F"}) then {
-                        _driver = driver _x;
-                        _xIsWithinObjViewDistance = isServer || {(_x distance _camPos) <= _objectViewDistance};
-
-                        MM_var_preDrawArray pushBack [
-                            _x, _xIsWithinObjViewDistance, 0, false, "iconParachute",
-                            (if (_driver in _groupUnits) then {
-                                if (_driver isEqualTo _unit) then {MM_var_colorYellow} else {MM_var_colorWhite}
-                            } else {
-                                _x getVariable ["MM_var_color", MM_var_colorDefault]
-                            }),
-                            16, "", 1, 0, true
-                        ];
-
-                        if (MM_var_showUnitNamesOverride && {MM_var_showUnitNames}) then {
-                            MM_var_preDrawArray pushBack [_x, _xIsWithinObjViewDistance, 48, false, "iconParachute", MM_var_colorWhite, 0, (_driver getVariable ["MM_var_name", ""]), 2, 0.0495, false];
-                        };
-                    } else {
-                        if (
-                            (!_isHidden && {(_parX getVariable ["MM_var_lastDrawArrUpdateFrameNo", 0]) <= MM_var_lastDrawArrUpdateFrameNo}) ||
-                            {([_x] call MM_fnc_isUavAi) && {_x isEqualTo (driver _parX)}}
-                        ) then {
-                            _parX setVariable ["MM_var_lastDrawArrUpdateFrameNo", diag_frameNo];
-                            _crew = [_parX] call MM_fnc_getCrew;
-                            _crewParX = crew _parX;
-                            _crewAlive = [];
-                            _crewDead = [];
-
-                            {
-                                if (alive _x) then {
-                                    _crewAlive pushBack _x;
-                                } else {
-                                    _crewDead pushBack _x;
-                                };
-                            } forEach _crew;
-
-                            _groupUnitsInCrew = _crew arrayIntersect _groupUnits;
-
-                            _color = if (_groupUnitsInCrew isEqualTo []) then {
-                                if (_crew isEqualTo []) then {
-                                    [(_crewParX select 0) getVariable ["MM_var_side", sideUnknown]] call MM_fnc_getTeamMapColor
-                                } else {
-                                    (_crew select 0) getVariable ["MM_var_color", MM_var_colorDefault]
-                                }
-                            } else {
-                                if (_unit in _groupUnitsInCrew) then {MM_var_colorYellow} else {MM_var_colorWhite}
-                            };
-
-                            _size = _parX getVariable ["MM_var_iconSize", 0];
-                            _icon = _parX getVariable ["MM_var_icon", "iconCar"];
-                            _parXIsWithinObjViewDistance = isServer || {(_parX distance _camPos) <= _objectViewDistance};
-
-                            MM_var_preDrawArray pushBack [_parX, _parXIsWithinObjViewDistance, 0, true, _icon, _color, _size, "", 1, 0, true];
-
-                            if (MM_var_showUnitNamesOverride && {MM_var_showUnitNames}) then {
-                                _crewFirstTwo = _crew select [0, 2];
-
-                                {
-                                    if (alive _x) then {
-                                        _crewAlive deleteAt 0;
-                                    } else {
-                                        _crewDead deleteAt 0;
-                                    };
-                                } forEach _crewFirstTwo;
-
-                                MM_var_preDrawArray pushBack [
-                                    _parX, _parXIsWithinObjViewDistance, (3 * _size), false, _icon, MM_var_colorWhite, 0,
-                                    (
-                                        [
-                                            (_parX getVariable ["MM_var_name", ""]),
-                                            (if (unitIsUav _parX) then {" (AI)"} else {""}),
-                                            (if (alive _parX) then {""} else {" (destroyed)"}),
-                                            (if (_crew isEqualTo []) then {
-                                                ""
-                                            } else {
-                                                [" [", "]"] joinString (
-                                                    (
-                                                        (
-                                                            (_crewFirstTwo apply {
-                                                                [
-                                                                    (_x getVariable ["MM_var_name", ""]),
-                                                                    (if (alive _x) then {
-                                                                        if ((getConnectedUAV _x) isEqualTo _parX) then {
-                                                                            if (_x in _crewParX) then {
-                                                                                " (crew + remote)"
-                                                                            } else {
-                                                                                " (remote)"
-                                                                            }
-                                                                        } else {
-                                                                            if (_x getVariable ["AIS_unconscious", false]) then {
-                                                                                " (unconscious)"
-                                                                            } else {
-                                                                                ""
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        " (dead)"
-                                                                    })
-                                                                ] joinString ""
-                                                            }) + [
-                                                                (if !(_crewAlive isEqualTo []) then {["+ ", " alive"] joinString (str (count _crewAlive))} else {""}),
-                                                                (if !(_crewDead isEqualTo []) then {["+ ", " dead"] joinString (str (count _crewDead))} else {""})
-                                                            ]
-                                                        ) select {_x != ""}
-                                                    ) joinString ", "
-                                                )
-                                            })
-                                        ] joinString ""
-                                    ),
-                                    2, 0.0495, false
-                                ];
-                            };
-                        };
-                    };
-                };
-            };
-
-            if _sleep then {
-                sleep 0.0015;
-            };
-        } forEach (missionNamespace getVariable _x);
-    } forEach (
-        if (MM_var_ShowAllSidesOverride || {MM_var_ShowAllSides} || {_isInSpectator && {MM_var_ShowAllSidesOnSpectator}}) then {
-            ["MM_var_unitsWest", "MM_var_unitsEast", "MM_var_unitsGuer", "MM_var_unitsCiv"]
-        } else {
-            [["MM_var_units", ([_side] call MM_fnc_getSideString)] joinString ""]
-        }
-    );
-
-    if _sleep then {
-        {
-            _hdl = [_sleep] spawn (missionNameSpace getVariable _x);
-            waitUntil {scriptDone _hdl};
-        } forEach MM_var_gatherDrawArrFncs;
-    } else {
-        {
-            [_sleep] call (missionNameSpace getVariable _x);
-        } forEach MM_var_gatherDrawArrFncs;
-    };
-
-    MM_var_drawArray = MM_var_preDrawArray;
-    MM_var_preDrawArray = [];
-    MM_var_lastDrawArrUpdateFrameNo = diag_frameNo;
-};
-
-MM_fnc_updateDrawArrayLoop = {
-    waitUntil {
-        waitUntil {(diag_frameNo - MM_var_lastDrawFrameNo) < 10};
-        MM_var_updateDrawArrayScript = [true] spawn MM_fnc_updateDrawArray;
-        waitUntil {scriptDone MM_var_updateDrawArrayScript};
-
-        false
-    };
-};
-
-MM_fnc_getPos = {
-    params ["_entity", "_isWithinObjectViewDistance"];
-
-    if _isWithinObjectViewDistance then {
-        getPosWorldVisual _entity
-    } else {
-        _entity getVariable ["MM_var_serverPos", [0, 0, 0]]
-    }
-};
-
-MM_fnc_getDir = {
-    params ["_entity", "_isWithinObjectViewDistance"];
-
-    if _isWithinObjectViewDistance then {
-        getDirVisual _entity
-    } else {
-        _entity getVariable ["MM_var_serverDir", 0]
-    }
-};
-
-MM_fnc_updateDrawArrayImmediate = {
-    if !(scriptDone MM_var_updateDrawArrayScript) then {
-        terminate MM_var_updateDrawArrayScript;
-    };
-    
-    MM_var_drawArray = [];
-    MM_var_preDrawArray = [];
-    MM_var_lastDrawArrUpdateFrameNo = diag_frameNo;
-    [false] call MM_fnc_updateDrawArray;
-};
-
-MM_fnc_drawIcons = {
-    params ["_display"];
-
-    uiNamespace setVariable ["MM_var_currentDisplay", _display];
-    MM_var_gpsOpened = _display in (uiNamespace getVariable "MM_var_gpsDisplays");
-    MM_var_ShowAllSidesOverride = _display isEqualTo ((findDisplay 314) displayCtrl 3141);
-
-    if (
-        (MM_var_showUnitNamesOverride == MM_var_gpsOpened) ||
-        {(scriptDone MM_var_updateDrawArrayScript) && {(diag_frameNo - MM_var_lastDrawArrUpdateFrameNo) > 200}}
-    ) then {
-        MM_var_showUnitNamesOverride = !MM_var_gpsOpened;
-        call MM_fnc_updateDrawArrayImmediate;
-    };
-
-    _ctrlMapScale = ctrlMapScale _display;
-    _mousePos = getMousePosition;
-
-    _textSizeFactor = if (_ctrlMapScale < 0.1) then {
-        if (_ctrlMapScale < 0.05) then {
-            0.7
-        } else {
-            0.3 + (6 * _ctrlMapScale)
-        }
-    } else {
-        1
-    };
+        if (count _kept != count _units) then {
+            _moved append (_units select {!isNull _x && {([_x] call MM_fnc_unitSide) != _side}});
+            missionNamespace setVariable [_bucket, _kept];
+        };
+    } forEach MM_var_bucketSides;
 
     {
-        if (
-            (_x select 10) ||
-            {
-                !MM_var_gpsOpened &&
-                {!MM_var_showUnitNamesOnlyOnHover || {((_display ctrlMapWorldToScreen ([(_x select 0), (_x select 1)] call MM_fnc_getPos)) distance _mousePos) < 0.02}}
-            }
-        ) then {
-            _x params ["_entity", "_isWithinObjectViewDistance", "_offsetToRight", "_calculateDir", "_icon", "_color", "_size", "_text", "_shadow", "_textSize"];
-
-            _display drawIcon ([
-                _icon,
-                (if (_color isEqualType []) then {_color} else {call _color}),
-                (if (_offsetToRight == 0) then {
-                    [_entity, _isWithinObjectViewDistance] call MM_fnc_getPos
-                } else {
-                    ([_entity, _isWithinObjectViewDistance] call MM_fnc_getPos) vectorAdd [(_offsetToRight * _ctrlMapScale * MM_var_mapScaleFactor), 0, 0]
-                }),
-                _size,
-                _size,
-                (if _calculateDir then {[_entity, _isWithinObjectViewDistance] call MM_fnc_getDir} else {0}),
-                _text,
-                _shadow
-            ] + (if (_textSize != 0) then {[_textSizeFactor * _textSize]} else {[]}));
-        };
-    } forEach MM_var_drawArray;
-
-    MM_var_lastDrawFrameNo = diag_frameNo;
-};
-
-MM_fnc_updateServerPosAndDir = {
-    params ["_entity", "_pos", "_dir"];
-
-    if !(isNull _entity) then {
-        _entity setVariable ["MM_var_serverPos", _pos];
-        _entity setVariable ["MM_var_serverDir", _dir];
-    };
+        [_x, [_x] call MM_fnc_unitSide] call MM_fnc_addToBucket;
+    } forEach _moved;
 };
 
 MM_fnc_entityInitClient = {
     params ["_entity"];
 
     if (_entity isKindOf "CAManBase") then {
-        _id = _entity getVariable ["MM_var_deletedEhId", -1];
-        if (_id != -1) then {_entity removeEventHandler ["Deleted", _id];};
+        private _deletedEhId = _entity getVariable ["MM_var_deletedEhId", -1];
 
-        _id = _entity addEventHandler ["Deleted", {
-            params ["_entity"];
-
-            _sideStr = [_entity getVariable ["MM_var_side", sideUnknown]] call MM_fnc_getSideString;
-            _entity call (compile (["MM_var_units", _sideStr, " deleteAt (MM_var_units", _sideStr," find _this);"] joinString ""));
-        }];
-
-        _entity setVariable ["MM_var_deletedEhId", _id];
-        _varStr = ["MM_var_units", ([side (group _entity)] call MM_fnc_getSideString)] joinString "";
-        
-        if ((random 1) < 0.01) then {
-            call (compile ([_varStr, " = ", _varStr, " - [objNull];"] joinString ""));
+        if (_deletedEhId != -1) then {
+            _entity removeEventHandler ["Deleted", _deletedEhId];
         };
 
-        _entity call (compile ([_varStr, " pushBackUnique _this;"] joinString ""));
+        _entity setVariable ["MM_var_deletedEhId", _entity addEventHandler ["Deleted", {
+            params ["_entity"];
+
+            private _units = missionNamespace getVariable [_entity getVariable ["MM_var_unitsBucket", ""], []];
+            private _index = _units find _entity;
+
+            if (_index != -1) then {
+                _units deleteAt _index;
+            };
+        }]];
+
+        [_entity, [_entity] call MM_fnc_unitSide] call MM_fnc_addToBucket;
     };
 
-    [_entity, (getPosWorldVisual _x), (getDirVisual _x)] call MM_fnc_updateServerPosAndDir;
+    [_entity, getPosWorldVisual _entity, getDirVisual _entity] call MM_fnc_updateServerPosAndDir;
 };
 
-MM_fnc_findControlArray = {
-    params ["_idds", "_idc"];
-    
+// ---- positions ----
+// Beyond the object view distance the icons use what the server sends: position, direction, velocity and turn rate.
+// Between two updates an icon continues that movement (for at most MM_var_predictionTime seconds, the server sends again
+// once the continuation deviates from the real movement), and a new update doesn't make it jump: the offset between
+// where it was shown and the new state fades out over MM_var_moveBlendTime (MM_fnc_farPosAndDir).
+
+// signed difference of two directions in degrees (-180..180); the server has the same (fnc_server.sqf)
+MM_fnc_angleDiff = {
+    params ["_a", "_b"];
+
+    ((_a - _b + 540) % 360) - 180
+};
+
+MM_fnc_updateServerPosAndDir = {
+    params ["_entity", "_pos", "_dir", ["_velocity", [0, 0]], ["_turnRate", 0]];
+
+    if (isNull _entity) exitWith {};
+
+    private _now = diag_tickTime;
+    private _base = [_pos select 0, _pos select 1, 0];
+    private _posOffset = [0, 0, 0];
+    private _dirOffset = 0;
+    private _move = _entity getVariable ["MM_var_serverMove", []];
+
+    // the offset of where the icon is shown now, faded out over the blend time
+    if (_move isNotEqualTo []) then {
+        ([_move, _now] call MM_fnc_farPosAndDir) params ["_shownPos", "_shownDir"];
+
+        if ((_shownPos distance2D _base) < MM_var_moveSnapDistance) then {
+            _posOffset = _shownPos vectorDiff _base;
+            _dirOffset = [_shownDir, _dir] call MM_fnc_angleDiff;
+        };
+    };
+
+    _entity setVariable ["MM_var_serverMove", [_base, _dir, (_velocity select [0, 2]) + [0], _turnRate, _now, _posOffset, _dirOffset]];
+};
+
+// [position, direction] of a far entity's icon at _now: the server state continued, plus the fading offset
+MM_fnc_farPosAndDir = {
+    params ["_move", "_now"];
+    _move params ["_base", "_dir", "_velocity", "_turnRate", "_time", "_posOffset", "_dirOffset"];
+
+    private _elapsed = _now - _time;
+    private _continued = _elapsed min MM_var_predictionTime;
+    private _fade = 1 - ((_elapsed / MM_var_moveBlendTime) min 1);
+
+    [
+        _base vectorAdd (_velocity vectorMultiply _continued) vectorAdd (_posOffset vectorMultiply _fade),
+        _dir + (_turnRate * _continued) + (_dirOffset * _fade)
+    ]
+};
+
+MM_fnc_updateServerPosAndDirBatch = {
+    params ["_updates"];
+
+    {
+        _x call MM_fnc_updateServerPosAndDir;
+    } forEach _updates;
+};
+
+#include "vehicleIcons.sqf"
+#include "drawing.sqf"
+
+// ---- maps / start / stop ----
+
+// the map controls of the open maps, GPS panels and UAV terminals
+MM_fnc_getMapControls = {
     disableSerialization;
-    ((allDisplays + (uiNamespace getVariable "IGUI_Displays")) select {((ctrlIDD _x) in _idds) && {!(isNull (_x displayCtrl _idc))}}) apply {_x displayCtrl _idc}
+
+    private _mapCtrls = [];
+
+    {
+        private _idc = MM_var_mapControlIdcs getOrDefault [ctrlIDD _x, -1];
+
+        if (_idc != -1 && {!isNull (_x displayCtrl _idc)}) then {
+            _mapCtrls pushBack (_x displayCtrl _idc);
+        };
+    } forEach (allDisplays + (uiNamespace getVariable ["IGUI_Displays", []]));
+
+    _mapCtrls
 };
 
-MM_fnc_getGPSDisplays = {
-    [[311], 101] call MM_fnc_findControlArray
+// adds the draw handler to every map control once, also to maps opened later (UAV terminal, camera) and to the GPS
+// panel each time it is created again
+MM_fnc_attachDrawLoop = {
+    disableSerialization;
+
+    waitUntil {
+        {
+            if ((_x getVariable ["MM_var_drawEhId", -1]) == -1) then {
+                _x setVariable ["MM_var_drawEhId", _x ctrlAddEventHandler ["Draw", {_this call MM_fnc_drawIcons}]];
+            };
+        } forEach (call MM_fnc_getMapControls);
+
+        sleep 0.1;
+        false
+    };
+};
+
+// tells the server which sides' positions this client needs - only while it draws a map, GPS or UAV terminal
+MM_fnc_reportShownSidesLoop = {
+    private _reportedSides = [];
+
+    waitUntil {
+        private _isDrawing = diag_frameNo - MM_var_lastDrawFrameNo < 10;
+        private _sides = if (_isDrawing) then {[call MM_fnc_viewUnit] call MM_fnc_shownSides} else {[]};
+
+        if (_sides isNotEqualTo _reportedSides) then {
+            _reportedSides = _sides;
+            [_sides] remoteExecCall ["MM_fnc_setClientShownSides", 2];
+        };
+
+        sleep 0.25;
+        false
+    };
 };
 
 MM_fnc_startMapMarkerClient = {
-    if (isNil "MM_var_clientRunning") then {
-        [] spawn {
-            call {
-                _veh = "B_Quadbike_01_F" createVehicleLocal [0, 0, 100];
-                deleteVehicle _veh;
-            };
+    if (MM_var_clientRunning) exitWith {};
 
-            waitUntil {!(isNil "MM_var_clientInitDone") && {!(isNull player)} && {!(isNull (findDisplay 46))} && {!((call MM_fnc_getGPSDisplays) isEqualTo [])}};
+    MM_var_clientRunning = true;
 
-            call {
-                {
-                    [_x] call MM_fnc_entityInitClient;
-                } forEach (entities [["CAManBase"], [""], true, false]);
-                
-                uiNamespace setVariable ["MM_var_gpsDisplays", (call MM_fnc_getGPSDisplays)];
+    [] spawn {
+        // original workaround, kept: one local vehicle is created and deleted before the first draw
+        deleteVehicle ("B_Quadbike_01_F" createVehicleLocal [0, 0, 100]);
 
-                {
-                    MM_var_drawEhIds pushBack (_x ctrlAddEventHandler ["Draw", {_this call MM_fnc_drawIcons;}]);
-                } forEach ([(findDisplay 12) displayCtrl 51] + (uiNamespace getVariable "MM_var_gpsDisplays"));
+        waitUntil {!isNil "MM_var_clientInitDone" && {!isNull player} && {!isNull findDisplay 46}};
 
-                MM_var_uavTerminalLoopScript = [] spawn {
-                    waitUntil {
-                        waitUntil {!(isNull (findDisplay 160))};
-                        ((findDisplay 160) displayCtrl 51) ctrlAddEventHandler ["Draw", {_this call MM_fnc_drawIcons;}];
-                        waitUntil {isNull (findDisplay 160)};
-                        false
-                    };
-                };
+        {
+            [_x] call MM_fnc_entityInitClient;
+        } forEach entities [["CAManBase"], [""], true, false];
 
-                MM_var_cameraMapDrawEHLoopScript = [] spawn {
-                    waitUntil {
-                        waitUntil {!(isNull (findDisplay 314))};
-                        ((findDisplay 314) displayCtrl 3141) ctrlAddEventHandler ["Draw", {_this call MM_fnc_drawIcons;}];
-                        waitUntil {isNull (findDisplay 314)};
-                        false
-                    };
-                };
+        MM_var_attachDrawLoopScript = [] spawn MM_fnc_attachDrawLoop;
+        MM_var_updateDrawArrayLoopScript = [] spawn MM_fnc_updateDrawArrayLoop;
 
-                MM_var_updateDrawArrayLoopScript = [] spawn MM_fnc_updateDrawArrayLoop;
-                MM_var_clientRunning = true;
-            };
+        // the server itself knows every position
+        if (!isServer) then {
+            MM_var_reportShownSidesLoopScript = [] spawn MM_fnc_reportShownSidesLoop;
         };
     };
 };
 
 MM_fnc_stopMapMarkerClient = {
-    call {
-        if !(isNil "MM_var_clientRunning") then {
-            MM_var_clientRunning = nil;
+    if (!MM_var_clientRunning) exitWith {};
 
-            terminate MM_var_updateDrawArrayLoopScript;
-            MM_var_updateDrawArrayLoopScript = scriptNull;
+    disableSerialization;
 
-            if !(scriptDone MM_var_updateDrawArrayScript) then {
-                terminate MM_var_updateDrawArrayScript;
-                MM_var_updateDrawArrayScript = scriptNull;
-            };
+    MM_var_clientRunning = false;
 
-            terminate MM_var_uavTerminalLoopScript;
-            MM_var_uavTerminalLoopScript = scriptNull;
-            
-            terminate MM_var_cameraMapDrawEHLoopScript;
-            MM_var_cameraMapDrawEHLoopScript = scriptNull;
+    {
+        terminate _x;
+    } forEach [MM_var_updateDrawArrayLoopScript, MM_var_updateDrawArrayScript, MM_var_attachDrawLoopScript,
+        MM_var_reportShownSidesLoopScript];
 
-            {
-                missionNamespace setVariable [("MM_var_units" + (str _x)), []];
-            } forEach [west, east, independent, civilian, sideEmpty, sideLogic, sideAmbientLife, sideUnknown];
+    MM_var_updateDrawArrayLoopScript = scriptNull;
+    MM_var_updateDrawArrayScript = scriptNull;
+    MM_var_attachDrawLoopScript = scriptNull;
+    MM_var_reportShownSidesLoopScript = scriptNull;
 
-            uiNamespace setVariable ["MM_var_currentDisplay", displayNull];
-            MM_var_lastDrawFrameNo = 0;
-            MM_var_lastDrawArrUpdateFrameNo = 0;
-            MM_var_gpsOpened = false;
-            MM_var_showUnitNamesOverride = true;
-            MM_var_drawArray = [];
-            MM_var_preDrawArray = [];
-
-            {
-                _x ctrlRemoveEventHandler ["Draw", (MM_var_drawEhIds select _forEachIndex)];
-            } forEach ([(findDisplay 12) displayCtrl 51] + (uiNamespace getVariable "MM_var_gpsDisplays"));
-
-            uiNamespace setVariable ["MM_var_gpsDisplays", []];
-            
-            MM_var_drawEhIds = [];
-        };
+    if (!isServer) then {
+        [[]] remoteExecCall ["MM_fnc_setClientShownSides", 2];
     };
+
+    call MM_fnc_resetUnitBuckets;
+
+    uiNamespace setVariable ["MM_var_currentDisplay", controlNull];
+    MM_var_lastDrawFrameNo = 0;
+    MM_var_lastDrawArrUpdateFrameNo = 0;
+    MM_var_groupScale = 0;
+    MM_var_gpsOpened = false;
+    MM_var_spectatorMapOpened = false;
+    MM_var_showUnitNamesOverride = true;
+    MM_var_drawArray = [];
+    MM_var_preDrawArray = [];
+
+    {
+        private _ehId = _x getVariable ["MM_var_drawEhId", -1];
+
+        if (_ehId != -1) then {
+            _x ctrlRemoveEventHandler ["Draw", _ehId];
+            _x setVariable ["MM_var_drawEhId", nil];
+        };
+    } forEach (call MM_fnc_getMapControls);
 };
 
 MM_var_clientInitDone = true;

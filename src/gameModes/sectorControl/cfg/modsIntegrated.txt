@@ -4,7 +4,10 @@ dynamicweather
 tdicons
 disablestamina
 disabletacticalview
+earplugs
 holster
 jump
-killfeed
+lagswitchdetection
 mapmarker
+unflip
+magrepack
