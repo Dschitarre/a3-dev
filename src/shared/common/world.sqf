@@ -67,7 +67,8 @@ CMN_fnc_applyWorldParams = {
     // startTime: 0 Morning, 1 Noon, 2 Evening, 3 Night; a mission that starts at night never skips nights
     private _startTime = "startTime" call BIS_fnc_getParamValue;
     DW_var_skipNight = _skipNight && {_startTime != 3};
-    DW_var_date = _date + ([[6, 0], [12, 0], [18, 0], [1, 0]] select _startTime);
+    // morning and evening as bright as on Altis at 06:00 / 18:00 (dynamicweather: DW_fnc_startDate)
+    DW_var_date = [_date, _startTime] call DW_fnc_startDate;
 
     // weather: 0 Dynamic, 1 Dynamic Foggy, 2 Sun, 3 Clouds, 4 Storm, 5 Rain -> presets of the dynamicweather mod
     DW_var_weatherPreset = ["dynamic", "dynamicFoggy", "sunny", "cloudy", "stormy", "rainy"] select ("weather" call BIS_fnc_getParamValue);

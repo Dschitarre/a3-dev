@@ -242,7 +242,7 @@ class CfgVehicles {
             class skipNightTime: Combo {
                 property = "moduleDynamicWeather_skipNightTime";
                 displayName = "skip night";
-                tooltip = "determines if and from when on the night is skipped to the next sunrise";
+                tooltip = "determines if and from when on the night is skipped to a bright next morning (as bright as Altis at 06:00)";
                 typeName = "NUMBER";
                 defaultValue = "19";
 

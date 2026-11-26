@@ -162,7 +162,8 @@ BR_fnc_zoneLoop = {
 
         // the next zone is shown from the first shrink on (BR_fnc_nextZoneShown)
         if (!isNil "BR_var_zoneRevealed") then {
-            ["brZone", [format ["Zone %1 marked on the map", _phase]]] call BR_fnc_notifyAll;
+            // phase 1 is the whole play area: the circles count from phase 2 (as on the HUD)
+            ["brZone", [format ["Zone %1 marked on the map", _phase - 1]]] call BR_fnc_notifyAll;
         };
 
         if (BR_var_airdropsEnabled && {[_phase, count BR_var_zonePhases] call BR_fnc_isAirdropPhase}) then {

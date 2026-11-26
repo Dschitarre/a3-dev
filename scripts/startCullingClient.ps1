@@ -93,7 +93,7 @@ try {
             if ($mods.Count) {
                 $args += "`"-mod=$($mods -join ';')`""
             }
-            $hc = Start-Process (Join-Path $server 'arma3server_x64.exe') -ArgumentList $args -WorkingDirectory $server -WindowStyle Hidden -PassThru
+            $hc = Start-Process (Join-Path $server 'arma3server_x64.exe') -ArgumentList $args -WorkingDirectory $server -WindowStyle Normal -PassThru
             $unregisteredSince = $null
         } else {
             $serverLog = Get-ChildItem (Join-Path $folder 'tmp_profiles') -Filter *.rpt | Sort-Object LastWriteTime -Descending | Select-Object -First 1

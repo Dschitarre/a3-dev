@@ -5,7 +5,7 @@ rem and launches arma3server_x64.exe with the template's server.cfg and mods.
 rem   mods.txt          workshop item ids (from cfg\workshopModsPath.txt)
 rem   modsOfficial.txt  official mod/DLC folders, e.g. gm
 rem   serverMods.txt    own mods from build\mods, loaded server-side only
-rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod (deployMapMod.bat)
+rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod built from src\mods
 rem Usage: startServer.bat <template> [true|false]
 rem   2nd argument: start the dedicated culling HC (default: cfg\cullingHC.txt); the mission must contain the HC slot
 rem   (build.ps1 -CullingHC true)

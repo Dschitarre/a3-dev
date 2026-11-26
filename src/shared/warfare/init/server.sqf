@@ -299,13 +299,8 @@ SC_fnc_initServerVars = {
     // weather: 0 Dynamic, 1 Dynamic Foggy, 2 Sun, 3 Clouds, 4 Storm, 5 Rain -> presets of the dynamicweather mod
     DW_var_weatherPreset = ["dynamic", "dynamicFoggy", "sunny", "cloudy", "stormy", "rainy"] select ("weather" call BIS_fnc_getParamValue);
 
-    // 0 = Morning, 1 = Noon, 2 = Evening, 3 = Night
-    DW_var_date = [2035, 07, 01] + ([
-    ([[6, 00], [8, 00]] select (worldName == "Tanoa")),
-    [12, 00],
-    [18, 00],
-    [1, 00]
-    ] select ("startTime" call BIS_fnc_getParamValue));
+    // 0 = Morning, 1 = Noon, 2 = Evening, 3 = Night; morning and evening as bright as on Altis (DW_fnc_startDate)
+    DW_var_date = [[2035, 7, 1], "startTime" call BIS_fnc_getParamValue] call DW_fnc_startDate;
 
     SC_var_allVehicles = [(getArray (missionConfigFile >> "vehicles")) call SC_fnc_filterConfigArr, [], {_x select 1}, "ASCEND"] call BIS_fnc_sortBy;
     publicVariable "SC_var_allVehicles";

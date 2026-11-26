@@ -112,6 +112,45 @@ DW_fnc_applyWeatherPreset = {
 
 DW_var_sunTimes = [[], [6, 18]];       // [date (year, month, day), [sunrise, sunset]]
 
+// Start times as bright as on Altis: the hour on this map whose sun elevation equals Altis' at _hour on the same day
+// (before noon for a morning hour, after noon for an evening one). The sun model of BIS_fnc_sunriseSunsetTime: solar
+// noon at 12:00, latitude = -CfgWorlds latitude, declination from the date. Tanoa (southern winter in June / July)
+// gets a later morning and an earlier evening than Altis, maps north of Altis the other way round.
+DW_fnc_altisEquivalentHour = {
+    params ["_day", "_hour"];
+
+    private _equinox = (360 * dateToNumber (_day + [12, 0])) - (360 * 81 / 365);
+    private _declination = asin (sin 23.44 * sin _equinox);
+    private _latitude = -getNumber (configFile >> "CfgWorlds" >> worldName >> "latitude");
+    private _altisLatitude = -getNumber (configFile >> "CfgWorlds" >> "Altis" >> "latitude");
+    private _sinElevation = (sin _altisLatitude * sin _declination) +
+        (cos _altisLatitude * cos _declination * cos (15 * (_hour - 12)));
+    private _cosHourAngle = (_sinElevation - (sin _latitude * sin _declination)) / (cos _latitude * cos _declination);
+    private _hourAngle = (acos ((_cosHourAngle max -1) min 1)) / 15;
+
+    [12 + _hourAngle, 12 - _hourAngle] select (_hour < 12)
+};
+
+// [hour, minute] of the Altis-equivalent hour, rounded to the minute
+DW_fnc_altisEquivalentTime = {
+    private _minutes = round (60 * (_this call DW_fnc_altisEquivalentHour));
+
+    [floor (_minutes / 60), _minutes mod 60]
+};
+
+// the start date of a game mode: _day [year, month, day] + the time of the lobby choice
+// (0 Morning = Altis 06:00, 1 Noon, 2 Evening = Altis 18:00, 3 Night)
+DW_fnc_startDate = {
+    params ["_day", "_startTime"];
+
+    _day + ([
+        [_day, 6] call DW_fnc_altisEquivalentTime,
+        [12, 0],
+        [_day, 18] call DW_fnc_altisEquivalentTime,
+        [1, 0]
+    ] select _startTime)
+};
+
 // [sunrise, sunset] of the current day in hours; [0, -1] polar summer (no sunset), [-1, 0] polar winter (no sunrise)
 DW_fnc_sunTimes = {
     private _day = date select [0, 3];
@@ -209,7 +248,7 @@ addMissionEventHandler ["PlayerDisconnected", {
 #include "weather.sqf"
 
 // ---- night skip ----
-// From DW_var_skipNightTime until sunrise the server skips to the sunrise, announcing it 30 and 5 seconds before
+// From DW_var_skipNightTime until sunrise the server skips to a bright morning (DW_fnc_morningTime), announcing it 30 and 5 seconds before
 // (at once when the time is already in this span, e.g. a start at night).
 
 // seconds until the skip, 0 if it is due
@@ -221,14 +260,12 @@ DW_fnc_secondsUntilNightSkip = {
     (_skipNightTimeNum - dayTime) * 3600 / timeMultiplier
 };
 
-// sunrise of the start day (DW_var_date), rounded up to the next full minute; every skip returns to the start day
-// on purpose (same day, same sun times)
+// a bright morning of the start day (DW_var_date): as bright as Altis at 06:00 (DW_fnc_altisEquivalentTime); every
+// skip returns to the start day on purpose (same day, same sun times)
 DW_fnc_morningTime = {
     private _day = DW_var_date select [0, 3];
-    private _sunrise = (([_day + [12, 0]] call BIS_fnc_sunriseSunsetTime) select 0) max 0;
-    private _minutes = ceil (_sunrise * 60) + 1;
 
-    _day + [floor (_minutes / 60), _minutes mod 60]
+    _day + ([_day, 6] call DW_fnc_altisEquivalentTime)
 };
 
 DW_fnc_sendNightMessage = {

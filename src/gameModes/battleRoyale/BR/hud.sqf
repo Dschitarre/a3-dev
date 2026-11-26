@@ -83,6 +83,9 @@ BR_fnc_hudTop = {
 
     BR_var_aliveCounts params ["_aliveUnits"];
     BR_var_zone params ["_phase", "_phaseCount", "", "", "", "", "_shrinkStart", "_shrinkEnd"];
+    // phase 1 is the whole play area (BR_fnc_zonePhases): the circles are counted from phase 2 on
+    private _zoneNumber = _phase - 1;
+    private _zoneCount = _phaseCount - 1;
 
     private _zone = switch (true) do {
         case (BR_var_state == "ended"): {["--", -1, "Match over", false]};
@@ -100,10 +103,19 @@ BR_fnc_hudTop = {
             }
         };
         case (_phase == 0): {["--", -1, "First zone soon", false]};
+        // no zone number before the first circle is marked (BR_fnc_nextZoneShown)
+        case (!(call BR_fnc_nextZoneShown)): {
+            if (serverTime < _shrinkStart) then {[
+                [_shrinkStart - serverTime] call BR_fnc_formatTime,
+                [format ["wait:%1", _shrinkStart], _shrinkStart] call BR_fnc_hudRemainingShare,
+                "First zone soon",
+                false
+            ]} else {["--", -1, "First zone soon", false]}
+        };
         case (serverTime < _shrinkStart): {[
             [_shrinkStart - serverTime] call BR_fnc_formatTime,
             [format ["wait:%1", _shrinkStart], _shrinkStart] call BR_fnc_hudRemainingShare,
-            format ["Zone %1/%2", _phase, _phaseCount],
+            format ["Zone %1/%2", _zoneNumber, _zoneCount],
             false
         ]};
         case (serverTime < _shrinkEnd): {[
@@ -113,7 +125,7 @@ BR_fnc_hudTop = {
             true
         ]};
         case (_phase >= _phaseCount): {["--", -1, "Final zone", false]};
-        default {["--", -1, format ["Zone %1/%2", _phase, _phaseCount], false]};
+        default {["--", -1, format ["Zone %1/%2", _zoneNumber, _zoneCount], false]};
     };
 
     _zone params ["_timer", "_share", "_status", "_warning"];

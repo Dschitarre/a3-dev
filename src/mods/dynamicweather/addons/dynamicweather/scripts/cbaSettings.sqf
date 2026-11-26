@@ -39,7 +39,7 @@ if (_integrated) then {
     ["DW_cba_changeTimeMultiplierNight", "SLIDER", ["Change time multiplier during night", "Time multiplier during weather change (night)."], [1, 120, 15, 0]],
     ["DW_cba_staticTimeMultiplierDay", "SLIDER", ["Static time multiplier during daytime", "Time multiplier while weather is static (day)."], [1, 120, 1, 0]],
     ["DW_cba_staticTimeMultiplierNight", "SLIDER", ["Static time multiplier during night", "Time multiplier while weather is static (night)."], [1, 120, 1, 0]],
-    ["DW_cba_skipNightTime", "SLIDER", ["Skip night from hour (0 = off)", "Hour of the mission day from which the clock skips to sunrise. Defaults to 18:00."], [0, 23, 18, 0]],
+    ["DW_cba_skipNightTime", "SLIDER", ["Skip night from hour (0 = off)", "Hour of the mission day from which the clock skips to a bright morning (as bright as Altis at 06:00). Defaults to 18:00."], [0, 23, 18, 0]],
     ["DW_cba_timeBetweenWeatherChangesMultiplierSunny", "SLIDER", ["Time between weather changes when sunny", "Determines how long the weather stays the same between weather changes when it is sunny."], [0.1, 12, 1, 1]],
     ["DW_cba_timeBetweenWeatherChangesMultiplierStormy", "SLIDER", ["Time between weather changes when stormy", "Determines how long the weather stays the same between weather changes when it is stormy."], [0.1, 12, 1, 1]]
 ];

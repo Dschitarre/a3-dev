@@ -46,7 +46,6 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 . (Join-Path $PSScriptRoot 'culling.ps1')
 . (Join-Path $PSScriptRoot 'hideTerrainObjects.ps1')
-. (Join-Path $PSScriptRoot 'playableSlots.ps1')
 
 # ---- helpers ----
 
@@ -320,13 +319,6 @@ function Build-Mission([string]$GameModeName, [string]$MapName) {
     if (Test-Path (Join-Path $missionPath 'SC\mapSetup.sqf')) {
         $hidden = Convert-HideTerrainModules $missionPath (Get-CfgConvert)
         Write-Host "  hide terrain areas: $hidden"
-    }
-
-    # playable units per side (scripts\playableSlots.ps1): only with the mode's cfg\playableSlots.txt
-    $playableSlots = Read-List (Join-Path $gameModePath 'cfg\playableSlots.txt') | Select-Object -First 1
-    if ($playableSlots) {
-        $added = Add-PlayableSlots $missionPath (Get-CfgConvert) ([int]$playableSlots)
-        Write-Host "  playable slots per side: $playableSlots (added $(($added.GetEnumerator() | ForEach-Object { "$($_.Key) $($_.Value)" }) -join ', '))"
     }
 
     # dedicated culling HC (scripts\culling.ps1): -CullingHC, else cfg\cullingHC.txt
