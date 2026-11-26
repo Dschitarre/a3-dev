@@ -3,3 +3,4 @@ vaOverride|vaOverride
 modLoader|modsIntegrated
 ui|ui
 warfare|SC
+common|common

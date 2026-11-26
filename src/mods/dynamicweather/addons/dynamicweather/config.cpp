@@ -58,6 +58,7 @@ class CfgVehicles {
     class Module_F: Logic {
         class AttributesBase {
             class Combo;
+            class Checkbox;
             class ModuleDescription;
         };
 
@@ -255,6 +256,14 @@ class CfgVehicles {
                     class 21 {name = "skip at 21:00"; value = 21;};
                     class 22 {name = "skip at 22:00"; value = 22;};
                 };
+            };
+
+            class silenceBells: Checkbox {
+                property = "moduleDynamicWeather_silenceBells";
+                displayName = "silence church bells";
+                tooltip = "turns off the bells of churches and bell towers for every player";
+                typeName = "BOOL";
+                defaultValue = "true";
             };
 
             class timeBetweenWeatherChangesMultiplierSunny: Combo {

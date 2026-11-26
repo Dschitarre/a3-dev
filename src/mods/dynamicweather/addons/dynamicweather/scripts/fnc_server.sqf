@@ -43,6 +43,7 @@ DW_fnc_setDefaultSettings = {
     DW_var_date = [2035, 6, 30, 6, 0];
     DW_var_skipNight = true;
     DW_var_skipNightTime = [18, 0];
+    DW_var_silenceBells = true;
 };
 
 call DW_fnc_setDefaultSettings;

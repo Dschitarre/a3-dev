@@ -41,6 +41,7 @@ SC_fnc_initCommon = {
     enableSentences false;
     enableTeamSwitch false;
     enableDynamicSimulationSystem false;
+    call CMN_fnc_silenceChurchBells;
 
     0 enableChannel [true, false];
     1 enableChannel [true, false];

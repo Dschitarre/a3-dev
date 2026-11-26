@@ -318,6 +318,12 @@ DW_fnc_startDynamicWeather = {
     // the module, the global enabler and game modes may all call this; only one weather loop may run
     if (!scriptDone DW_var_weatherScript) exitWith {};
 
+    // the church bells off on every machine with sound, also for players joining later (fnc_client.sqf)
+    if (missionNamespace getVariable ["DW_var_silenceBells", true]) then {
+        DW_var_bellsSilenced = true;
+        publicVariable "DW_var_bellsSilenced";
+    };
+
     [DW_var_weatherPreset] call DW_fnc_applyWeatherPreset;
 
     DW_var_weatherScript = [_setDate] spawn DW_fnc_dynamicWeather;

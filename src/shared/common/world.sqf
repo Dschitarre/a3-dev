@@ -8,9 +8,29 @@ CMN_fnc_disableEngineFeatures = {
     showSubtitles false;
     enableTeamSwitch false;
     enableDynamicSimulationSystem false;
+    call CMN_fnc_silenceChurchBells;
 
     if (isNil "CMN_var_aiRadioScript") then {
         CMN_var_aiRadioScript = [] spawn CMN_fnc_disableAiRadioLoop;
+    };
+};
+
+// The church bells: the engine rings CfgSFX >> Church at every terrain building whose class has simulation "church"
+// (churches, the cathedral, bell towers; Tanoa 21, Altis 31) while it is simulated, on each machine for itself. No
+// mission can change the config, so every machine with sound turns the simulation of these buildings off for itself
+// (once: terrain objects stay). All game modes, no parameter (user 2026-11-26).
+CMN_fnc_silenceChurchBells = {
+    if (!hasInterface || {!isNil "CMN_var_bellsSilenced"}) exitWith {};
+
+    CMN_var_bellsSilenced = true;
+
+    [] spawn {
+        private _classes = ("getText (_x >> 'simulation') == 'church'" configClasses (configFile >> "CfgVehicles")) apply {configName _x};
+        private _half = worldSize / 2;
+
+        {
+            _x enableSimulation false;
+        } forEach (nearestObjects [[_half, _half], _classes, worldSize, true]);
     };
 };
 

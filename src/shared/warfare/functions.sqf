@@ -7,6 +7,7 @@ isNil {
         } forEach [
             "ui\ui.sqf",
             "ui\vehicleSymbols.sqf",
+            "common\world.sqf",
             "vaOverride\vaOverride.sqf",
             "vaOverride\limits.sqf",
             "vaOverride\selection.sqf",

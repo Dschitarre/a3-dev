@@ -26,6 +26,7 @@ TR_fnc_init = {
     };
 
     enableSentences false;
+    call CMN_fnc_silenceChurchBells;
 
     player allowDamage false;
     player enableFatigue false;

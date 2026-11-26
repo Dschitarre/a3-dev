@@ -27,7 +27,8 @@ call compile preprocessFileLineNumbers "dynamicweather\scripts\fn_init.sqf";
     ["DW_var_changeTimeMultiplierNight", "timeMultiplierChangeNight"],
     ["DW_var_staticTimeMultiplierNight", "timeMultiplierStaticNight"],
     ["DW_var_timeBetweenWeatherChangesMultiplierSunny", "timeBetweenWeatherChangesMultiplierSunny"],
-    ["DW_var_timeBetweenWeatherChangesMultiplierStormy", "timeBetweenWeatherChangesMultiplierStormy"]
+    ["DW_var_timeBetweenWeatherChangesMultiplierStormy", "timeBetweenWeatherChangesMultiplierStormy"],
+    ["DW_var_silenceBells", "silenceBells"]
 ];
 
 // "Custom" uses the range attributes above (DW_fnc_applyWeatherPreset)
