@@ -308,7 +308,7 @@ SC_fnc_initServerVars = {
     SC_var_availableVehicles = SC_var_allVehicles select {
         _x params ["_type", "_rank"];
 
-        (_rank <= SC_var_maxVehicleRank) && {SC_var_vehicleHugeMap || {!([_type] call SC_fnc_isPlaneType)}} && {
+        (_rank <= SC_var_maxVehicleRank) && {(SC_var_vehicleHugeMap && SC_var_layoutPlaneSpawns) || {!([_type] call SC_fnc_isPlaneType)}} && {
             private _vehicle = _type createVehicleLocal [0, 0, 100];
             private _mass = getMass _vehicle;
             deleteVehicle _vehicle;

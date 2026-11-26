@@ -31,9 +31,9 @@ SC_fnc_initServiceServer = {
             SC_var_servicePoints pushBack [_x, _vehicleSpawn, SC_var_serviceRadius, getPosWorld _vehicleSpawn];
         };
 
-        // planes spawn at the base only on huge maps
+        // planes spawn at the base only on huge maps whose layout has plane spawns (SC_fnc_applyMapData)
         if (
-            SC_var_hugeMap &&
+            SC_var_hugeMap && {SC_var_layoutPlaneSpawns} &&
             {!(isNull _planeSpawn)} &&
             {(getPosWorld _planeSpawn) inArea ("SC_var_" + _sideStr + "Base")} &&
             {(isNull _vehicleSpawn) || {(_planeSpawn distance2D _vehicleSpawn) > (SC_var_serviceRadius + SC_var_servicePlaneRadius)}}

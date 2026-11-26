@@ -124,6 +124,10 @@ SC_fnc_applyMapData = {
 
     _data params ["_generalData", "_sideData", "_sectorData"];
 
+    // planes only where the layout places a plane spawn in every base (7th base object); whole Malden has none
+    SC_var_layoutPlaneSpawns = (_sideData findIf {count (_x select 7) < 7}) == -1;
+    publicVariable "SC_var_layoutPlaneSpawns";
+
     "SC_var_playZone" setMarkerPos (_generalData select 3);
     "SC_var_playZone" setMarkerSize (_generalData select 4);
     "SC_var_playZone" setMarkerDir (_generalData select 5);

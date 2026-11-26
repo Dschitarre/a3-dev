@@ -332,12 +332,36 @@ function Build-Mission([string]$GameModeName, [string]$MapName) {
 
     $clientProfilePath = Read-Cfg clientProfilePath -Optional
     if ($clientProfilePath) {
-        $profileCopy = Join-Path $clientProfilePath "$missionFolder\$missionName"
-        Remove-Directory $profileCopy
-        Copy-Item $missionPath $profileCopy -Recurse
+        Update-ProfileCopy $missionPath (Join-Path $clientProfilePath "$missionFolder\$missionName") $missionName
     }
 
     New-PackJob $missionPath $outputDir
+}
+
+# The unpacked copy in the client profile (for Eden). Its mission.sqm may have been edited and saved in Eden: a copy
+# whose mission.sqm is neither the one the last build put there (build\profileCopies.json) nor the new one is left
+# untouched, so an Eden edit is never lost; take it into src\...\missionFiles first, then the next build updates it.
+function Update-ProfileCopy([string]$MissionPath, [string]$ProfileCopy, [string]$MissionName) {
+    $record = Join-Path $Root 'build\profileCopies.json'
+    $hashes = @{}
+    if (Test-Path $record) {
+        (Get-Content $record -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $hashes[$_.Name] = $_.Value }
+    }
+    $newHash = (Get-FileHash (Join-Path $MissionPath 'mission.sqm')).Hash
+    $profileSqm = Join-Path $ProfileCopy 'mission.sqm'
+
+    if (Test-Path $profileSqm) {
+        $currentHash = (Get-FileHash $profileSqm).Hash
+        if ($currentHash -ne $newHash -and $currentHash -ne $hashes[$MissionName]) {
+            Write-Warning "$ProfileCopy\mission.sqm was edited in Eden: profile copy NOT updated (move the edit into src first)"
+            return
+        }
+    }
+
+    Remove-Directory $ProfileCopy
+    Copy-Item $MissionPath $ProfileCopy -Recurse
+    $hashes[$MissionName] = $newHash
+    $hashes | ConvertTo-Json | Set-Content $record -Encoding UTF8
 }
 
 # ---- mods ----
