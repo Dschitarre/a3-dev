@@ -1,1 +1,1 @@
-@Chernarus2020BaseExpansion
+Chernarus2020MilitaryHuntingExpansion

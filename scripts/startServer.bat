@@ -5,7 +5,8 @@ rem and launches arma3server_x64.exe with the template's server.cfg and mods.
 rem   mods.txt          workshop item ids (from cfg\workshopModsPath.txt)
 rem   modsOfficial.txt  official mod/DLC folders, e.g. gm
 rem   serverMods.txt    own mods from build\mods, loaded server-side only
-rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod built from src\mods
+rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod built from src\mods;
+rem                     each one is loaded only if it is in build\mods (not built = the template runs without it)
 rem Usage: startServer.bat <template> [true|false]
 rem   2nd argument: start the dedicated culling HC (default: cfg\cullingHC.txt); the mission must contain the HC slot
 rem   (build.ps1 -CullingHC true)
@@ -46,11 +47,12 @@ mkdir tmp_profiles\Users\server
 copy /y server.Arma3Profile tmp_profiles\Users\server >nul
 
 rem ---- mod lists and keys ----
+rem keys are copied one by one: "copy dir\*.bikey" fails on the Google Drive file system (the PC's repo)
 
 set "mods="
 set "serverMods="
 for /f "usebackq tokens=*" %%i in ("mods.txt") do (
-    copy /y "%workshopModsPath%\%%i\keys\*.bikey" "%serverPath%\keys\" >nul 2>&1
+    for %%k in ("%workshopModsPath%\%%i\keys\*.bikey") do copy /y "%%~fk" "%serverPath%\keys\" >nul
     set "mods=!mods!%workshopModsPath%\%%i;"
 )
 
@@ -60,8 +62,12 @@ for /f "usebackq tokens=*" %%i in ("modsOfficial.txt") do (
 
 if exist clientMods.txt (
     for /f "usebackq tokens=*" %%i in ("clientMods.txt") do (
-        copy /y "%basePath%\build\mods\%%i\keys\*.bikey" "%serverPath%\keys\" >nul 2>&1
-        set "mods=!mods!%basePath%\build\mods\%%i;"
+        if exist "%basePath%\build\mods\%%i\addons" (
+            for %%k in ("%basePath%\build\mods\%%i\keys\*.bikey" "%basePath%\build\mods\%%i\*.bikey") do copy /y "%%~fk" "%serverPath%\keys\" >nul
+            set "mods=!mods!%basePath%\build\mods\%%i;"
+        ) else (
+            echo client mod %%i is not in build\mods: starting without it
+        )
     )
 )
 
@@ -78,7 +84,7 @@ for /f "usebackq tokens=*" %%i in ("maps.txt") do (
     copy /y "%basePath%\build\mpmissions\%gameMode%.%%i.pbo" "%serverPath%\mpmissions\" >nul
     copy /y "%basePath%\build\mpmissions\%gameMode%.%%i.pbo.%keyName%.bisign" "%serverPath%\mpmissions\" >nul
 )
-copy /y "%basePath%\cfg\keys\*.bikey" "%serverPath%\keys\" >nul
+for %%k in ("%basePath%\cfg\keys\*.bikey") do copy /y "%%~fk" "%serverPath%\keys\" >nul
 
 rem ---- launch ----
 

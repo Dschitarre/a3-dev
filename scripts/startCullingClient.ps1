@@ -79,7 +79,7 @@ if (Test-Path (Join-Path $folder 'modsOfficial.txt')) {
     $mods += @(Get-Content (Join-Path $folder 'modsOfficial.txt') | Where-Object { $_ -and $_ -notmatch '^\s*//' })
 }
 if (Test-Path (Join-Path $folder 'clientMods.txt')) {
-    $mods += @(Get-Content (Join-Path $folder 'clientMods.txt') | Where-Object { $_ -and $_ -notmatch '^\s*//' } | ForEach-Object { Join-Path $root "build\mods\$($_.Trim())" })
+    $mods += @(Get-Content (Join-Path $folder 'clientMods.txt') | Where-Object { $_ -and $_ -notmatch '^\s*//' } | ForEach-Object { Join-Path $root "build\mods\$($_.Trim())" } | Where-Object { Test-Path (Join-Path $_ 'addons') })
 }
 
 # ---- client supervision ----
