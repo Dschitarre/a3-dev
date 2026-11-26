@@ -2,9 +2,16 @@
 
 // ---- player systems ----
 
+// The mission's own stamina (HUD bar, STAM perk) replaces the engine's: engine stamina stays off for the player
+// (AI: SC_fnc_spawnAi), so the Disable Stamina addon is not part of this mode.
 SC_fnc_staminaSystemLoop = {
     waitUntil {
         waitUntil {
+            if (isStaminaEnabled player) then {
+                player enableStamina false;
+                player enableFatigue false;
+            };
+
             private _speed = vectorMagnitude (velocity player);
             private _holdsSprintButton = (inputAction "turbo") == 1;
             private _increase = 0;

@@ -318,7 +318,7 @@ TDI_fnc_addEmptyVehicleIcon = {
 
 // ---- unit icons ----
 // The diary icon of the unit's side and its name above every visible unit of the own side (or of all sides), plus a
-// heal icon for unconscious units outside the own group. Crews go through their vehicle's icon (above).
+// heal icon for unconscious units (group members only without group markers). Crews go through their vehicle's icon (above).
 
 TDI_fnc_addUnitIcon = {
     params ["_target", "_context", "_vehicles", "_crewShown"];
@@ -375,7 +375,9 @@ TDI_fnc_addUnitIcon = {
         TDI_var_showUnitNames
     ];
 
-    if (alive _target && {[_target] call TDI_fnc_isUnconscious} && {!(_target in _groupUnits)}) then {
+    // group members already get a group marker when those are shown
+    if (alive _target && {[_target] call TDI_fnc_isUnconscious} &&
+        {!(_target in _groupUnits) || {!(missionNamespace getVariable ["TDI_var_showGroupIcons", false])}}) then {
         TDI_var_preDrawArray pushBack [
             _distance,
             1,
@@ -624,7 +626,9 @@ TDI_fnc_updateDrawArrayLoop = {
         ];
 
         _context call TDI_fnc_gatherUnitIcons;
-        _context call TDI_fnc_gatherGroupIcons;
+        if (missionNamespace getVariable ["TDI_var_showGroupIcons", false]) then {
+            _context call TDI_fnc_gatherGroupIcons;
+        };
 
         {
             private _handle = _context spawn (missionNamespace getVariable _x);

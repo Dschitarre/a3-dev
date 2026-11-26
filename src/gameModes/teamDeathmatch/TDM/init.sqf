@@ -152,6 +152,8 @@ DM_fnc_startModsServer = {
     RscSpectator_allowFreeCam = TDI_var_showAllSidesOnSpectator;
     publicVariable "TDI_var_showAllSidesOnSpectator";
     publicVariable "RscSpectator_allowFreeCam";
+    TDI_var_showGroupIcons = true;
+    publicVariable "TDI_var_showGroupIcons";
     DM_var_tdIconsEnabled = missionNamespace getVariable ["TDI_cba_enabled", true];
     publicVariable "DM_var_tdIconsEnabled";
     if (DM_var_tdIconsEnabled) then {

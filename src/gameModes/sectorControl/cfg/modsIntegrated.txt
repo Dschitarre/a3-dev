@@ -2,7 +2,6 @@ allowdamageglobal
 killfeed
 dynamicweather
 tdicons
-disablestamina
 disabletacticalview
 earplugs
 holster

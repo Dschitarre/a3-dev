@@ -43,9 +43,6 @@ SC_fnc_initServer = {
     if (missionNamespace getVariable ["DW_cba_enabled", true]) then {
         [true] call DW_fnc_startDynamicWeather;
     };
-    if (missionNamespace getVariable ["DS_cba_enabled", true]) then {
-        call DS_fnc_startDisableStaminaServer;
-    };
     if (missionNamespace getVariable ["DTV_cba_enabled", true]) then {
         call DTV_fnc_startDisableTacticalViewServer;
     };
