@@ -83,6 +83,41 @@ SC_fnc_aiPopulationArea = {SC_var_mapArea};
 
 SC_fnc_vehicleAvailabilityArea = {SC_var_mapArea};
 
+// land area (m²) of an area marker: a grid over the marker (about 200 x 200 points) tested with surfaceIsWater, so a
+// coastal or whole-island play zone counts its land and islands, not the sea (user 2026-11-26)
+SC_fnc_markerLandArea = {
+    params ["_marker"];
+
+    (getMarkerSize _marker) params ["_a", "_b"];
+    private _center = getMarkerPos _marker;
+    private _direction = markerDir _marker;
+    private _isRectangle = (markerShape _marker) == "RECTANGLE";
+    private _markerArea = [pi * _a * _b, 4 * _a * _b] select _isRectangle;
+    private _step = 25 max ((sqrt _markerArea) / 200);
+    private _reach = sqrt ((_a * _a) + (_b * _b));
+    private _land = 0;
+
+    for "_dx" from -_reach to _reach step _step do {
+        for "_dy" from -_reach to _reach step _step do {
+            // into the marker's own axes (its direction is clockwise from north)
+            private _u = (_dx * cos _direction) - (_dy * sin _direction);
+            private _v = (_dx * sin _direction) + (_dy * cos _direction);
+
+            if ([((_u / _a) ^ 2) + ((_v / _b) ^ 2) <= 1, (abs _u) <= _a && {(abs _v) <= _b}] select _isRectangle) then {
+                private _px = (_center select 0) + _dx;
+                private _py = (_center select 1) + _dy;
+
+                if (_px >= 0 && {_py >= 0} && {_px <= worldSize} && {_py <= worldSize} && {!(surfaceIsWater [_px, _py])}) then {
+                    _land = _land + 1;
+                };
+            };
+        };
+    };
+
+    // a zone with too few points on land (tiny marker) keeps its marker area
+    [_markerArea, _land * _step * _step] select (_land >= 20)
+};
+
 // at most 30 per side on smaller maps, 50 on huge maps (the 50 playable units of a side)
 SC_fnc_populationTarget = {
     [call SC_fnc_aiPopulationArea, [30, 50] select SC_var_hugeMap] call SC_fnc_unitsForArea
@@ -170,15 +205,8 @@ SC_fnc_initServerVars = {
     TDI_var_ShowGroupIcons = true;
     publicVariable "TDI_var_ShowGroupIcons";
 
-    SC_var_mapArea = (_playZoneSize select 0) * (_playZoneSize select 1);
-
-    if ((markerShape "SC_var_playZone") == "RECTANGLE") then {
-        SC_var_mapArea = 4 * SC_var_mapArea;
-    } else {
-
-        SC_var_mapArea = pi * SC_var_mapArea;
-    };
-
+    // the land of the play zone (islands included, the sea not): AI strength, size class, vehicles, ticket rate
+    SC_var_mapArea = ["SC_var_playZone"] call SC_fnc_markerLandArea;
     publicVariable "SC_var_mapArea";
 
     SC_var_mapZoomFactor = switch worldName do {
