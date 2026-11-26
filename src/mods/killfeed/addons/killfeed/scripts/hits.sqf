@@ -254,7 +254,8 @@ KF_fnc_formatHitsPicture = {
             case (_type == "Tombstone"): {["IGUI\Cfg\MPTable\killed_ca.paa", _scale] call KF_fnc_formatIcon};
             // the marker fills its whole square: as high as the tombstone, not more (it stood out at 1.26)
             case (_type == "Restricted Zone"): {["map\markers\military\warning_CA.paa", 0.9 * _scale] call KF_fnc_formatIcon};
-            case (_type == "Fire"): {["IGUI\Cfg\Actions\ico_ON_ca.paa", _scale] call KF_fnc_formatIcon};
+            // a flame (the "light a fire" action); ico_ON was a tick and looked like a check mark (user 2026-11-26)
+            case (_type == "Fire"): {["IGUI\Cfg\Actions\Obsolete\ui_action_fire_in_flame_ca.paa", _scale] call KF_fnc_formatIcon};
             case (_type == "Drowning"): {["IGUI\Cfg\MPTable\killed_ca.paa", _scale] call KF_fnc_formatIcon};
             case (_type == "Fall Damage"): {["GUI\Rsc\RscDisplayMain\menu_singleplayer_ca.paa", 1.26 * _scale] call KF_fnc_formatIcon};
             // vehicles sized by their opaque area (KF_fnc_vehiclePictureScale), never higher than a weapon picture, so the

@@ -484,7 +484,8 @@ TDI_fnc_addGroupIcon = {
             TDI_var_nameSizeDivisor,
             TDI_var_unconsciousIconScale * TDI_var_minUnitIconSize,
             1,
-            false
+            false,
+            true
         ];
     };
 
@@ -504,7 +505,8 @@ TDI_fnc_addGroupIcon = {
         TDI_var_nameSizeDivisor,
         _baseSize / sqrt sqrt TDI_var_groupIconMinDistance,
         1,
-        false
+        false,
+        true
     ];
 };
 
@@ -520,9 +522,13 @@ TDI_fnc_gatherGroupIcons = {
 // ---- draw array ----
 
 // public entry -> per-frame form: [object, positionType, positionOffset, sizeFactor, useSqrtZoom, textSizeCutoff,
-// text, textSizeDivisor, floor, widthFactor, drawIcon3D arguments]. Icons shrink with the distance down to their floor
-// (minSize times TDI_var_minSizeFactor); a text is always its icon's size / textSizeDivisor (the same ratio at every
-// distance) and is drawn only while the unfloored size is at least textSizeCutoff.
+// text, textSizeDivisor, floor, widthFactor, drawIcon3D arguments of the icon, textEnabled, text floor, drawIcon3D
+// arguments of the text]. Icons shrink with the distance down to their floor (minSize times TDI_var_minSizeFactor); a
+// text is always its icon's size / textSizeDivisor (the same ratio at every distance) and is drawn only while the
+// unfloored size is at least textSizeCutoff. whiteText: the text is white whatever the icon's colour (unit names: the
+// own unit's group icon is yellow). drawIcon3D has one colour for icon and text, so such an icon in another colour
+// draws its text as a second drawIcon3D without a texture at the same place and size (white with the icon's alpha;
+// [] for every other icon: one drawIcon3D, the text in the icon's colour as before - e.g. coloured sector icons).
 TDI_fnc_prepareDrawEntry = {
     params [
         "_distance",
@@ -538,7 +544,8 @@ TDI_fnc_prepareDrawEntry = {
         ["_textSizeDivisor", 0],
         ["_minSize", 0],
         ["_widthFactor", 1],
-        ["_textEnabled", true]
+        ["_textEnabled", true],
+        ["_whiteText", false]
     ];
 
     // type 0: above the head, 1: middle of the body (offset unused), 2: origin, 3: flag top, 4: base object,
@@ -549,10 +556,18 @@ TDI_fnc_prepareDrawEntry = {
         [[0, 0, 1.6 - exp (_distance / 8000)], [], [0, 0, 0], [0, 0, 1.05], [0, 0.1, 0.45]] select _posType
     };
     private _args = _iconColor + [[0, 0, 0], 0, 0, _angle, "", _shadow];
+    private _color = _iconColor select 1;
+    private _textArgs = if (_whiteText && {_text != ""} && {(_color select [0, 3]) isNotEqualTo [1, 1, 1]}) then {
+        ["", [1, 1, 1, _color param [3, 1]], [0, 0, 0], 0, 0, _angle, "", _shadow]
+    } else {[]};
 
     // only the text size, no font: drawIcon3D's default font as in the original version
     if (_textSizeDivisor != 0) then {
         _args pushBack 0;
+
+        if (_textArgs isNotEqualTo []) then {
+            _textArgs pushBack 0;
+        };
     };
 
     [
@@ -568,7 +583,8 @@ TDI_fnc_prepareDrawEntry = {
         _widthFactor,
         _args,
         _textEnabled,
-        _textSizeCutoff max TDI_var_nameMinSize
+        _textSizeCutoff max TDI_var_nameMinSize,
+        _textArgs
     ]
 };
 
@@ -661,7 +677,7 @@ TDI_fnc_drawIcons = {
     private _forceText = TDI_var_showAllText;
 
     {
-        _x params ["_obj", "_posType", "_posOffset", "_sizeFactor", "_useSqrtZoom", "_textSizeCutoff", "_text", "_textSizeDivisor", "_floor", "_widthFactor", "_args", "_textEnabled", "_textIconFloor"];
+        _x params ["_obj", "_posType", "_posOffset", "_sizeFactor", "_useSqrtZoom", "_textSizeCutoff", "_text", "_textSizeDivisor", "_floor", "_widthFactor", "_args", "_textEnabled", "_textIconFloor", "_textArgs"];
 
         private _pos = if (_posType == 0) then {
             (_obj modelToWorldVisual (_obj selectionPosition "head")) vectorAdd _posOffset
@@ -683,15 +699,32 @@ TDI_fnc_drawIcons = {
             _args set [3, _size * _widthFactor];
             _args set [4, _size];
 
-            if (_text != "") then {
-                _args set [6, if ((_textEnabled && {_naturalSize >= _textSizeCutoff}) || {_forceText}) then {_text} else {""}];
-            };
+            private _shownText = if ((_text != "") && {(_textEnabled && {_naturalSize >= _textSizeCutoff}) || {_forceText}}) then {_text} else {""};
 
             if (_textSizeDivisor != 0) then {
                 _args set [8, _size / _textSizeDivisor];
             };
 
-            drawIcon3D _args;
+            // the text with the icon, or white in a second drawIcon3D (_textArgs)
+            if (_textArgs isEqualTo []) then {
+                _args set [6, _shownText];
+                drawIcon3D _args;
+            } else {
+                drawIcon3D _args;
+
+                if (_shownText != "") then {
+                    _textArgs set [2, _pos];
+                    _textArgs set [3, _size * _widthFactor];
+                    _textArgs set [4, _size];
+                    _textArgs set [6, _shownText];
+
+                    if (_textSizeDivisor != 0) then {
+                        _textArgs set [8, _size / _textSizeDivisor];
+                    };
+
+                    drawIcon3D _textArgs;
+                };
+            };
         };
     } forEach TDI_var_drawArray;
 };

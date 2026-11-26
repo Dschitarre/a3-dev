@@ -48,7 +48,7 @@ if (isNil "TDI_var_vehicleFarSize") then {TDI_var_vehicleFarSize = 0.12;};      
 if (isNil "TDI_var_vehicleStageHysteresis") then {TDI_var_vehicleStageHysteresis = 0.1;};  // share a size must pass a threshold by
 // height of the far symbol (x its scale, x TDI_var_minSizeFactor): only a hint where a unit icon would be too small to
 // notice, at scale 1 (a typical picture) as high as the side icon of the middle stage at its smallest
-if (isNil "TDI_var_vehicleSymbolSize") then {TDI_var_vehicleSymbolSize = 0.23;};
+if (isNil "TDI_var_vehicleSymbolSize") then {TDI_var_vehicleSymbolSize = 0.45;};
 if (isNil "TDI_var_minVehicleIconSize") then {TDI_var_minVehicleIconSize = 0.04;};         // smaller vehicle icons are not drawn (~1.5 km)
 
 // ---- colors and icons ----

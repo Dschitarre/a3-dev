@@ -278,6 +278,21 @@ SC_fnc_aiFindParkingSpot = {
         };
     } forEach ([_side] call SC_fnc_aiDeliveryAnchors);
 
+    // the side's other spawn vehicles (trucks and helicopters): where they stand, or where they are being taken - a spot
+    // close to one of them is taken only if there is no other (user 2026-11-26: not parked next to each other)
+    private _spacing = 150 max (400 min (0.5 * SC_var_aiSectorSpacing));
+    private _occupied = [];
+
+    {
+        private _other = _x get "vehicle";
+
+        if (((_x get "side") == _side) && {alive _other} && {_other isNotEqualTo _vehicle}) then {
+            private _task = _other getVariable ["SC_var_aiDeliveryTask", []];
+
+            _occupied pushBack ([getPosATL _other, _task select 0] select (_task isNotEqualTo []));
+        };
+    } forEach SC_var_spawnVehicleSlots;
+
     private _best = [];
 
     {
@@ -288,6 +303,14 @@ SC_fnc_aiFindParkingSpot = {
             _x params ["_pos", "_sectorInd", "_enemyPoints"];
 
             private _rating = [_pos, _sectorInd, _side, _isAir, _enemyPoints, _requiredCover] call SC_fnc_aiRateParkingSpot;
+
+            if (_rating >= 0 && {_occupied isNotEqualTo []}) then {
+                private _nearest = selectMin (_occupied apply {_x distance2D _pos});
+
+                if (_nearest < _spacing) then {
+                    _rating = -0.99 max (_rating - 3 * (1 - (_nearest / _spacing)));
+                };
+            };
 
             if (_rating > _bestRating) then {
                 _best = [_pos, _rating, _sectorInd];
@@ -765,5 +788,92 @@ SC_fnc_aiDoDelivery = {
         if !([_group, _vehicle, _destination] call SC_fnc_aiCheckStuck) then {
             [_group, _vehicle, "failed: stuck"] call SC_fnc_aiEndDelivery;
         };
+    };
+};
+
+// ---- attacking enemy spawn vehicles ----
+// AI with a launcher destroy enemy spawn vehicles (trucks, helicopters) they see, also empty ones (user 2026-11-26).
+// The AI does not target empty vehicles by itself (they are no enemies): the nearest AI on foot with a loaded launcher
+// that sees one gets it as an order (doTarget + doFire: tested, an RPG destroys an empty truck in ~15 s) until it is
+// destroyed, out of reach or SC_var_aiHuntTimeout has passed, then it returns to its squad. Spawn vehicles in a base and
+// the AI of players' groups are left alone. One hunter per vehicle (server).
+
+SC_var_aiHuntRange = 400;           // m, unguided launchers
+SC_var_aiHuntRangeGuided = 800;     // m, launchers that lock on (Titan, PCML, ...)
+SC_var_aiHuntTimeout = 40;          // s per order
+SC_var_aiHuntInterval = 5;          // s between two passes
+
+SC_fnc_aiHuntRange = {
+    params ["_launcher"];
+
+    [SC_var_aiHuntRange, SC_var_aiHuntRangeGuided] select ((getNumber (configFile >> "CfgWeapons" >> _launcher >> "canLock")) > 0)
+};
+
+SC_fnc_aiCanHunt = {
+    params ["_unit"];
+
+    private _launcher = secondaryWeapon _unit;
+
+    (alive _unit) && {!(isPlayer _unit)} && {simulationEnabled _unit} && {isNull (objectParent _unit)} &&
+        {_launcher != ""} && {!(_unit getVariable ["AIS_unconscious", false])} &&
+        {((units (group _unit)) findIf {isPlayer _x}) == -1} &&
+        {((_unit ammo _launcher) > 0) || {((magazines _unit) arrayIntersect (compatibleMagazines _launcher)) isNotEqualTo []}}
+};
+
+SC_fnc_aiHuntLoop = {
+    waitUntil {
+        sleep SC_var_aiHuntInterval;
+
+        {
+            private _vehicle = _x get "vehicle";
+            private _owner = _x get "side";
+            private _hunter = _vehicle getVariable ["SC_var_aiHunter", objNull];
+            private _inBase = (SC_var_sides findIf {_vehicle inArea ("SC_var_" + toLower (str _x) + "Base")}) != -1;
+
+            // a running order: kept while it can still work
+            if (!(isNull _hunter) && {
+                !(alive _vehicle) || {_inBase} || {!([_hunter] call SC_fnc_aiCanHunt)} ||
+                {time > (_hunter getVariable ["SC_var_aiHuntUntil", 0])} ||
+                {(_hunter distance _vehicle) > ([secondaryWeapon _hunter] call SC_fnc_aiHuntRange)}
+            }) then {
+                _hunter doWatch objNull;
+                _hunter doFollow (leader (group _hunter));
+                _hunter setVariable ["SC_var_aiHuntTarget", nil];
+                _vehicle setVariable ["SC_var_aiHunter", nil];
+                _hunter = objNull;
+            };
+
+            if ((alive _vehicle) && {!_inBase} && {isNull _hunter}) then {
+                private _pos = getPosATL _vehicle;
+                private _candidates = (_pos nearEntities [["CAManBase"], SC_var_aiHuntRangeGuided]) select {
+                    (side (group _x)) != _owner && {(side (group _x)) in SC_var_sides} &&
+                        {isNull (_x getVariable ["SC_var_aiHuntTarget", objNull])} &&
+                        {[_x] call SC_fnc_aiCanHunt} &&
+                        {(_x distance _vehicle) <= ([secondaryWeapon _x] call SC_fnc_aiHuntRange)} &&
+                        {([_vehicle, "VIEW", _x] checkVisibility [eyePos _x, aimPos _vehicle]) > 0.3}
+                };
+
+                if (_candidates isNotEqualTo []) then {
+                    private _unit = ([_candidates, [], {_x distance _vehicle}, "ASCEND"] call BIS_fnc_sortBy) select 0;
+
+                    _vehicle setVariable ["SC_var_aiHunter", _unit];
+                    _unit setVariable ["SC_var_aiHuntTarget", _vehicle];
+                    _unit setVariable ["SC_var_aiHuntUntil", time + SC_var_aiHuntTimeout];
+                    _unit selectWeapon (secondaryWeapon _unit);
+                    _unit doWatch _vehicle;
+                    _unit doTarget _vehicle;
+                    _unit doFire _vehicle;
+                    ["huntSpawnVehicle", group _unit, typeOf _vehicle, round (_unit distance _vehicle)] call SC_fnc_aiLog;
+                };
+            };
+
+            // the order is repeated every pass (the AI drops a fire order once it reloaded)
+            if (!(isNull _hunter) && {alive _vehicle}) then {
+                _hunter doTarget _vehicle;
+                _hunter doFire _vehicle;
+            };
+        } forEach ((missionNamespace getVariable ["SC_var_spawnVehicleSlots", []]) select {alive (_x get "vehicle")});
+
+        false
     };
 };

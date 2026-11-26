@@ -1,5 +1,5 @@
 // Earplugs (client): F1 puts the earplugs in / out, automatic earplugs while the player sits in a ground vehicle,
-// aircraft or boat, a settings dialog (Ctrl+F1, saved in the profile) and an icon while earplugs are in. The game
+// aircraft or boat or controls a drone (by its kind) whose engine runs, a settings dialog (Ctrl+F1, saved in the profile) and an icon while earplugs are in. The game
 // volume is the lowest one of the earplugs in, faded on every change. Missions that fade the sound themselves (death,
 // spectator, black screens) fade back to E_fnc_effectiveVolume and tell the mod with E_var_suspendCondition.
 
@@ -117,10 +117,12 @@ E_fnc_listenerUnit = {
     [_remoteControlled, player] select (isNull _remoteControlled)
 };
 
-// the category of the unit's vehicle (index into E_var_categoryKinds); -1 on foot, dead, in a static weapon, a
-// parachute (counts as aircraft) or a UAV
-E_fnc_vehicleCategory = {
+// the vehicle the player hears: a drone he controls (the camera is on it, its engine is what he hears), else the
+// unit's vehicle; objNull on foot, dead, in a static weapon, a parachute (counts as aircraft) or a UAV he sits in
+E_fnc_listenerVehicle = {
     params ["_unit"];
+
+    if (alive _unit && {unitIsUAV cameraOn} && {(UAVControl cameraOn) param [0, objNull] isEqualTo _unit}) exitWith {cameraOn};
 
     private _vehicle = objectParent _unit;
 
@@ -130,7 +132,16 @@ E_fnc_vehicleCategory = {
         {_vehicle isKindOf "StaticWeapon"} ||
         {_vehicle isKindOf "ParachuteBase"} ||
         {unitIsUAV _vehicle}
-    ) exitWith {-1};
+    ) exitWith {objNull};
+
+    _vehicle
+};
+
+// the category of a vehicle (index into E_var_categoryKinds), -1 for objNull
+E_fnc_vehicleCategory = {
+    params ["_vehicle"];
+
+    if (isNull _vehicle) exitWith {-1};
 
     E_var_categoryKinds findIf {_vehicle isKindOf _x}
 };
@@ -142,9 +153,11 @@ E_fnc_effectiveVolume = {
     if (!E_var_running) exitWith {1};
 
     private _volume = [1, E_var_volumeMuted] select E_var_earplugsOn;
-    private _category = [call E_fnc_listenerUnit] call E_fnc_vehicleCategory;
+    private _vehicle = [call E_fnc_listenerUnit] call E_fnc_listenerVehicle;
+    private _category = [_vehicle] call E_fnc_vehicleCategory;
 
-    if (_category != -1 && {E_var_autoEnabled select _category}) then {
+    // automatic earplugs only while the vehicle's engine runs (checked every E_var_updateInterval)
+    if (_category != -1 && {E_var_autoEnabled select _category} && {isEngineOn _vehicle}) then {
         _volume = _volume min (E_var_autoVolumes select _category);
     };
 
@@ -248,8 +261,8 @@ E_fnc_gridCell = {
 
 // Left of the vanilla weapon info (its place in the player's layout, IGUI_GRID_WEAPON_*), level with its top: the
 // weapon info and the stance indicator fill the top right corner, below them starts the kill feed of the killfeed mod.
-// In a vehicle the weapon info sits E_var_vehicleWeaponInfoShift cells further right (RscUnitInfo: no stance
-// indicator there), the icon follows it.
+// In a vehicle (also looking through a drone) the weapon info sits E_var_vehicleWeaponInfoShift cells further right
+// (RscUnitInfo: no stance indicator there), the icon follows it.
 E_var_vehicleWeaponInfoShift = 3.8;
 
 E_fnc_defaultIconPosition = {
@@ -259,7 +272,7 @@ E_fnc_defaultIconPosition = {
     private _weaponY = profileNamespace getVariable ["IGUI_GRID_WEAPON_Y", safeZoneY + 0.5 * _cellH];
     private _width = E_var_iconSize * _cellW;
 
-    if (!isNull (objectParent (call E_fnc_listenerUnit))) then {
+    if (!isNull (objectParent (call E_fnc_listenerUnit)) || {unitIsUAV cameraOn}) then {
         _weaponX = _weaponX + E_var_vehicleWeaponInfoShift * _cellW;
     };
 
@@ -354,9 +367,9 @@ E_var_dialogHintSize = 0.8;     // cells: text size of the hint (the vanilla sid
 // checkbox 100 + 10 * n, slider + 1, value + 2
 E_var_dialogRows = [
     ["Earplugs (F1)", "Earplugs in or out (also F1) and the game volume while they are in"],
-    ["Ground vehicles", "Earplugs in while you sit in a car, truck, tank or APC, and the game volume then"],
-    ["Aircraft", "Earplugs in while you sit in a helicopter or plane, and the game volume then"],
-    ["Boats", "Earplugs in while you sit in a boat or submarine, and the game volume then"]
+    ["Ground vehicles", "Earplugs in while you sit in a car, truck, tank or APC with the engine running, and the game volume then"],
+    ["Aircraft", "Earplugs in while you sit in a helicopter or plane with the engine running, and the game volume then"],
+    ["Boats", "Earplugs in while you sit in a boat or submarine with the engine running, and the game volume then"]
 ];
 E_var_dialogHeading = "Automatic earplugs in vehicles";
 E_var_dialogHint = "If several earplugs are in, the lowest volume applies.";

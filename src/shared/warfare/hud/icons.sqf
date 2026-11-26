@@ -43,7 +43,7 @@ SC_fnc_getBaseIcons = {
         } forEach SC_var_planeSpawnIds;
 
         {
-            _icons pushBack [_x select 1, "Boats", "\A3\ui_f\data\Map\Markers\NATO\c_ship.paa", 1];
+            _icons pushBack [_x select 1, "Vehicles", "\A3\ui_f\data\Map\Markers\NATO\c_ship.paa", 1];
         } forEach (missionNamespace getVariable ["SC_var_harbors", []]);
 
         // the harbours come a few seconds after the start (SC_fnc_createHarbors): cache once they are known

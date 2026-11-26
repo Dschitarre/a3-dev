@@ -214,12 +214,15 @@ SC_fnc_aiQueueVehicle = {
     _queued
 };
 
+// whether a queued AI vehicle request is still needed when its turn comes: the unit is still there (within 500 m of the
+// spawn point: a harbour's vehicle spawn point can lie up to SC_var_harborVehicleRange m from its shop), without a
+// vehicle and far from its goal
 SC_fnc_aiVehicleRequestStillNeeded = {
     params ["_unit", "_group", "_spawnPos"];
 
     !isNull _unit && {!isPlayer _unit} && {alive _unit} && {simulationEnabled _unit} &&
         {group _unit == _group} && {isNull ([_group] call SC_fnc_aiGetSquadVehicle)} &&
-        {_unit distance2D _spawnPos < 150} &&
+        {_unit distance2D _spawnPos < 500} &&
         {([getPosWorld _unit, side _group, _group] call SC_fnc_aiDistanceToGoal) > SC_var_aiVehicleUseDistance}
 };
 
@@ -247,6 +250,18 @@ SC_fnc_aiRequestVehicle = {
 
             if (_index != -1) then {
                 _place = SC_var_sectors select _index;
+            };
+        };
+
+        // a harbour with a vehicle spawn point (a squad that came by boat goes on by vehicle, SC\ai\boats.sqf)
+        if (_place == "") then {
+            private _index = (missionNamespace getVariable ["SC_var_harbors", []]) findIf {
+                ((_x param [4, []]) isNotEqualTo []) &&
+                    {((_leader distance2D (_x select 4)) < 150) || {(_leader distance2D (_x select 1)) < 150}}
+            };
+
+            if (_index != -1) then {
+                _place = (SC_var_harbors select _index) select 0;
             };
         };
     };
@@ -696,15 +711,26 @@ SC_fnc_aiIsSeenByPlayers = {
 
 // ---- vehicle loop ----
 
-// [min distance, depletion factor] of the despawn / ownership timer of a vehicle (in a base only units right at the
-// vehicle keep it, and the timer runs down faster)
+// [min distance, depletion factor] of the despawn / ownership timer of a vehicle. On a base's vehicle or plane spawn
+// point an empty vehicle goes faster and only units close to it (10 m) keep it, so the spawn point does not stay
+// blocked. Everywhere else, the rest of a base included (whole-map bases are 600 - 1700 m wide), the normal rule: units
+// within SC_var_minDistanceFromVehicleToDespawn keep it (user 2026-11-26: a tank next to a player despawned in a base).
+SC_var_spawnPointDespawnDistance = 10;
+
 SC_fnc_getVehicleTimerParams = {
     params ["_vehicle"];
 
-    private _posVehicle = getPosWorld _vehicle;
+    private _onSpawnPoint = SC_var_sides findIf {
+        private _start = "SC_var_" + toLower (str _x);
+        private _vehicleSpawn = missionNamespace getVariable [_start + "VehSpawn", objNull];
+        private _planeSpawn = missionNamespace getVariable [_start + "PlaneSpawn", objNull];
 
-    if ((SC_var_sides findIf {_posVehicle inArea ("SC_var_" + (str _x) + "Base")}) != -1) then {
-        [1, 5]
+        (!(isNull _vehicleSpawn) && {(_vehicle distance2D _vehicleSpawn) < SC_var_serviceRadius}) ||
+            {SC_var_layoutPlaneSpawns && {!(isNull _planeSpawn)} && {(_vehicle distance2D _planeSpawn) < SC_var_servicePlaneRadius}}
+    };
+
+    if (_onSpawnPoint != -1) then {
+        [SC_var_spawnPointDespawnDistance, 5]
     } else {
 
         [SC_var_minDistanceFromVehicleToDespawn, 1]

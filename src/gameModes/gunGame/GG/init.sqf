@@ -227,7 +227,17 @@ GG_fnc_setupPlayer = {
     player addEventHandler ["Respawn", {_this call GG_fnc_respawn}];
     player addEventHandler ["Take", {_this call GG_fnc_take}];
     player addEventHandler ["FiredMan", {_this call GG_fnc_firedMan}];
-    player addEventHandler ["InventoryOpened", {["inventoryDisabled"] call BIS_fnc_showNotification; true}];
+    // no inventory: true blocks it only while this is the unit's last InventoryOpened handler (Magazine Repack re-adds
+    // its own after every respawn), so an inventory that opens anyway is closed at once
+    player addEventHandler ["InventoryOpened", {
+        ["inventoryDisabled"] call BIS_fnc_showNotification;
+        [] spawn {
+            private _end = diag_tickTime + 1;
+            waitUntil {!(isNull (findDisplay 602)) || {diag_tickTime > _end}};
+            if !(isNull (findDisplay 602)) then {(findDisplay 602) closeDisplay 2};
+        };
+        true
+    }];
     addMissionEventHandler ["Map", {
         params ["_isOpened"];
         [_isOpened, "GG_var_playZone", GG_var_mapScaleFactor, GG_var_maxZoneSize] call CMN_fnc_mapZoom;

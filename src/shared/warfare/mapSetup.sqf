@@ -119,7 +119,7 @@ SC_fnc_sectorLabels = {
 SC_fnc_applyMapData = {
     params ["_name", "_data"];
     SC_var_mapName = _name;
-    SC_var_wholeMap = SC_var_mapName in ["Altis (Huge)", "Malden (Huge)", "Chernarus (Huge)"];
+    SC_var_wholeMap = SC_var_mapName in ["Altis (Huge)", "Malden (Huge)", "Chernarus (Huge)", "Tanoa (Huge)"];
     publicVariable "SC_var_wholeMap";
 
     _data params ["_generalData", "_sideData", "_sectorData"];

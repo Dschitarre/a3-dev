@@ -60,8 +60,10 @@ SC_fnc_getVehicleSpawnRowState = {
         case ((SC_var_availableVehicles findIf {(_x select 0) == _type}) == -1): {"unavailable"};
         case (!SC_var_currentAllowPlanes && {[_type] call SC_fnc_isPlaneType}): {"unavailable"};
 
-        // boats only at harbours, only boats there (SC\vehicles\harbors.sqf)
-        case ((_type isKindOf "Ship") != (missionNamespace getVariable ["SC_var_currentAtHarbor", false])): {"unavailable"};
+        // boats only at harbours; land vehicles and helicopters there only at one with a vehicle spawn point
+        // (SC\vehicles\harbors.sqf)
+        case ((_type isKindOf "Ship") && {!(missionNamespace getVariable ["SC_var_currentAtHarbor", false])}): {"unavailable"};
+        case (!(_type isKindOf "Ship") && {!([SC_var_currentPlace, _type] call SC_fnc_isHarborSpawnable)}): {"unavailable"};
         case ((player getVariable ["SC_var_rank", 1]) < _rank): {"locked"};
         default {"normal"};
     }
@@ -100,8 +102,9 @@ SC_fnc_setupVehicleSpawnDialog = {
         SC_var_currentAtHarbor = _atHarbor;
         SC_var_vehicleSpawnRows = [];
 
-        // the list of this place: boats at a harbour, everything else elsewhere
-        SC_var_currentSpawnVehicles = SC_var_allVehicles select {((_x select 0) isKindOf "Ship") == _atHarbor};
+        // the list of this place: boats first and then everything else at a harbour, no boats elsewhere
+        private _boats = SC_var_allVehicles select {(_x select 0) isKindOf "Ship"};
+        SC_var_currentSpawnVehicles = ([[], _boats] select _atHarbor) + (SC_var_allVehicles - _boats);
 
         private _equipmentDialog = uiNamespace getVariable "SC_var_vehicleSpawnDialog";
 
@@ -193,6 +196,16 @@ SC_fnc_setupVehicleSpawnDialog = {
     };
 };
 
+// whether a land vehicle or helicopter can be spawned at a place: true if the place is no harbour; at a harbour only
+// with its vehicle spawn point (SC\vehicles\harbors.sqf) and no plane
+SC_fnc_isHarborSpawnable = {
+    params ["_place", "_type"];
+
+    private _harbor = (missionNamespace getVariable ["SC_var_harbors", []]) select {(_x select 0) == _place};
+
+    (_harbor isEqualTo []) || {!([_type] call SC_fnc_isPlaneType) && {((_harbor select 0) param [4, []]) isNotEqualTo []}}
+};
+
 // server-side check of a player's vehicle spawn request (mirrors the checks of the vehicle spawn dialog)
 SC_fnc_isVehicleSpawnAllowed = {
     params ["_unit", "_place", "_type", "_planeOrVehSpawnId"];
@@ -204,8 +217,10 @@ SC_fnc_isVehicleSpawnAllowed = {
 
     if ((_unit getVariable ["SC_var_rank", 1]) < ((SC_var_availableVehicles select _vehicleIdx) select 1)) exitWith {false};
 
-    // harbours: boats for every side; boats nowhere else
-    if (((missionNamespace getVariable ["SC_var_harbors", []]) findIf {(_x select 0) == _place}) != -1) exitWith {_type isKindOf "Ship"};
+    // harbours: boats for every side, land vehicles and helicopters at one with a vehicle spawn point; boats nowhere else
+    if (((missionNamespace getVariable ["SC_var_harbors", []]) findIf {(_x select 0) == _place}) != -1) exitWith {
+        (_type isKindOf "Ship") || {[_place, _type] call SC_fnc_isHarborSpawnable}
+    };
 
     if (_type isKindOf "Ship") exitWith {false};
 
@@ -292,11 +307,12 @@ SC_fnc_spawnVehicle = {
         };
     };
 
-    // a harbour (boats, SC\vehicles\harbors.sqf)
+    // a harbour (SC\vehicles\harbors.sqf): boats at its boat spawn point, the others at its vehicle spawn point
     private _harborIndex = (missionNamespace getVariable ["SC_var_harbors", []]) findIf {(_x select 0) == _place};
+    private _isBoat = _type isKindOf "Ship";
 
     private _pos = switch (true) do {
-        case (_harborIndex != -1): {(SC_var_harbors select _harborIndex) select 2};
+        case (_harborIndex != -1): {(SC_var_harbors select _harborIndex) select ([4, 2] select _isBoat)};
         case (_planeOrVehSpawnId != -1): {
             getPosATL (missionNamespace getVariable ("SC_var_" + (if _isPlane then {"plane"} else {"veh"}) + "Spawn" + (str _planeOrVehSpawnId)))
         };
@@ -309,7 +325,9 @@ SC_fnc_spawnVehicle = {
     _safePos = [];
     private _rad = 7;
 
-    _semaphoreVar = if (_harborIndex != -1) then {"SC_var_boatSpawnSemaphore" + (str _harborIndex)} else {
+    _semaphoreVar = if (_harborIndex != -1) then {
+        (["SC_var_harborVehicleSpawnSemaphore", "SC_var_boatSpawnSemaphore"] select _isBoat) + (str _harborIndex)
+    } else {
         "SC_var_" + (["vehicle", "plane"] select _isPlane) + "SpawnSemaphore" + ([(toLower (str _side)), (str _planeOrVehSpawnId)] select (_planeOrVehSpawnId != -1))
     };
 
@@ -341,13 +359,13 @@ SC_fnc_spawnVehicle = {
     // AI vehicles are spread over the place (SC_fnc_aiVehicleSpawnPos), a player's vehicle stands as close as possible
     private _spreadOut = !_wasPlayer && {!_isPlane};
 
-    if (_harborIndex != -1) then {
+    if ((_harborIndex != -1) && _isBoat) then {
         _safePos = [_pos] call SC_fnc_boatSpawnPos;
     };
 
     waitUntil {
         if ((isNil "_safePos") || {_safePos isEqualTo []}) then {
-            if (_harborIndex != -1) exitWith {true};
+            if ((_harborIndex != -1) && _isBoat) exitWith {true};
 
             waitUntil {_pos findEmptyPositionReady [0,[_rad, SC_var_aiVehicleSpawnRange] select _spreadOut] ||
                 {(serverTime - _startTime) > 5}};
@@ -419,7 +437,7 @@ SC_fnc_spawnVehicle = {
         };
 
         // a boat points away from the harbour's shop, out to the water
-        if (_harborIndex != -1) then {
+        if ((_harborIndex != -1) && _isBoat) then {
             _veh setDir ((SC_var_harbors select _harborIndex) select 3);
         };
 
@@ -519,7 +537,7 @@ SC_fnc_spawnVehicle = {
             };
         };
 
-        // a player's boat: he takes the helm at once (the harbour's shop stands on the shore)
+        // a player's vehicle at a harbour: he takes the wheel at once (the shop stands next to the spawn points)
         if ((_harborIndex != -1) && {isPlayer _unit} && {_wasPlayer}) then {
             [_unit, _veh] remoteExecCall ["moveInDriver", _unit];
         };

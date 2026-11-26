@@ -62,16 +62,31 @@ SC_fnc_saveLoadoutToProfile = {
 
 // ---- inventory ----
 
+// No inventory in the own base. Returning true blocks it only while this handler is the last InventoryOpened handler of
+// the unit: other handlers added later (Magazine Repack re-adds its own after every respawn) decide instead, so an
+// inventory that opens anyway is closed at once (user 2026-11-26: notification shown, inventory opened all the same).
 SC_fnc_onInventoryOpened = {
     if ((getPosATL player) inArea ("SC_var_" + (str (side (group player))) + "Base")) then {
         if (SC_var_hudEnabled && {SC_var_inventoryDisabledCooldown == 0}) then {
             ["inventoryDisabled"] call BIS_fnc_showNotification;
         };
 
+        [] spawn SC_fnc_closeInventoryIfOpened;
         true
     } else {
         nil
     }
+};
+
+// closes the inventory display (602) should it open within the next second
+SC_fnc_closeInventoryIfOpened = {
+    private _end = diag_tickTime + 1;
+
+    waitUntil {!(isNull (findDisplay 602)) || {diag_tickTime > _end}};
+
+    if !(isNull (findDisplay 602)) then {
+        (findDisplay 602) closeDisplay 2;
+    };
 };
 
 SC_fnc_inventoryDisabledCooldownLoop = {

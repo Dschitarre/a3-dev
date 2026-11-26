@@ -39,6 +39,8 @@ SC_fnc_initServer = {
     SC_var_aiLoopScript = [] spawn SC_fnc_aiLoop;
     SC_var_suspendAiLoopScript = [] spawn SC_fnc_suspendAiLoop;
     SC_var_groupLoopScript = [] spawn SC_fnc_aiGroupLoop;
+    // AI with launchers attack enemy spawn vehicles they see (SCi\delivery.sqf)
+    SC_var_aiHuntLoopScript = [] spawn SC_fnc_aiHuntLoop;
 
     if (missionNamespace getVariable ["DW_cba_enabled", true]) then {
         [true] call DW_fnc_startDynamicWeather;

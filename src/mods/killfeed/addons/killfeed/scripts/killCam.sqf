@@ -906,8 +906,10 @@ KF_fnc_killCamFinish = {
     KF_var_killCamActive = false;
     [missionNamespace, "KF_killCamDone", [KF_var_killCam get "shown"]] call BIS_fnc_callScriptedEventHandler;
 
-    // back in with what follows (respawn menu, unconscious view), after a moment for it to appear
+    // back in with what follows (respawn menu, unconscious view), after a moment for it to appear; game modes show
+    // their respawn menu controls from the middle of this fade in (KF_var_menuFadeInHalfAt, time)
     if (!isNull _camera && {!_handOver}) then {
+        KF_var_menuFadeInHalfAt = time + 0.2 + KF_var_killCamOutroFade / 2;
         sleep 0.2;
         _layer cutText ["", "BLACK IN", KF_var_killCamOutroFade, true];
     };

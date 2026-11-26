@@ -316,13 +316,11 @@ SC_fnc_aiGetTravelDestination = {
     _group setVariable ["SC_var_aiDestinationTurn", nil];
 
     switch (true) do {
-        // a boat: to a landing point at the objective's coast (SC\ai\boats.sqf)
+        // a boat: to a landing point at the objective's coast or to a harbour there (SC_fnc_aiBoatDestination)
         case (_vehicle isKindOf "Ship"): {
-            _destination = [_center, getPosWorld _vehicle] call SC_fnc_aiLandingPoint;
-
-            if (_destination isEqualTo []) then {
-                _destination = _center;
-            };
+            ([_target, getPosWorld _vehicle] call SC_fnc_aiBoatDestination) params ["_boatDestination", "_harborName"];
+            _destination = _boatDestination;
+            ["vehicle", _group, typeOf _vehicle, "sails to", ["the coast", _harborName] select (_harborName != ""), _target] call SC_fnc_aiLog;
         };
         // a land vehicle of a squad that needs a boat: to the harbour
         case ((_harbor != -1) && {!(_vehicle isKindOf "Air")}): {
@@ -377,7 +375,9 @@ SC_fnc_aiAtSpawnPoint = {
     ((_pos distance2D (getMarkerPos ("SC_var_" + (toLower (str _side)) + "Respawn"))) < 150) ||
     {(SC_var_sectors findIf {((missionNamespace getVariable ("SC_var_owner" + _x)) == _side) &&
         {(_pos distance2D (getMarkerPos ("SC_var_sector" + _x))) < 100}}) != -1} ||
-    {((missionNamespace getVariable ["SC_var_harbors", []]) findIf {(_pos distance2D (_x select 2)) < 150}) != -1}
+    {((missionNamespace getVariable ["SC_var_harbors", []]) findIf {
+        ((_pos distance2D (_x select 2)) < 150) || {((_x param [4, []]) isNotEqualTo []) && {(_pos distance2D (_x select 4)) < 150}}
+    }) != -1}
 };
 
 // A squad whose vehicle stands at a spawn point of its side waits up to SC_var_aiGatherTime seconds (from when it has the
@@ -993,6 +993,21 @@ SC_fnc_aiUpdateSquad = {
     if (!(isNull _vehicle) && {_inside isEqualTo []} && {(_leader distance _vehicle) > (2 * SC_var_aiVehicleWalkDistance)}) then {
         [_group, _vehicle, "left behind"] call SC_fnc_aiReleaseVehicle;
         _vehicle = objNull;
+    };
+
+    // a boat the squad got out of on its objective's land mass has done its job: the squad goes on on foot or gets a
+    // vehicle at the harbour it landed at (else it would board the boat again for the rest of the way)
+    if (
+        !(isNull _vehicle) &&
+        {_vehicle isKindOf "Ship"} &&
+        {(_able findIf {(objectParent _x) isEqualTo _vehicle}) == -1} &&
+        {[_group, _target] call SC_fnc_aiOnTargetLandmass}
+    ) then {
+        [_group, _vehicle, "landed"] call SC_fnc_aiReleaseVehicle;
+        _vehicle = objNull;
+
+        // a new leg: a vehicle may be requested at once (the wait of the last request is for the boat trip)
+        _group setVariable ["SC_var_aiNextVehicleRequest", 0];
     };
 
     // an objective across the water (an island): by boat from a harbour of the own land mass (SC\ai\boats.sqf); not for
