@@ -6,7 +6,7 @@ for %%I in ("%~dp0..") do (
     set "basePath=%%~fI"
 )
 
-for %%n in (clientProfilePath cullingHC keyName serverPath steamCmdPath steamUser toolsPath workshopModsPath) do (
+for %%n in (clientProfilePath cullingHC keyName laptopHost laptopPath serverPath steamCmdPath steamUser toolsPath workshopModsPath) do (
     set "%%n="
     if exist "%basePath%\cfg\%%n.txt" (
         set /p %%n=<"%basePath%\cfg\%%n.txt"

@@ -7,7 +7,6 @@ disabletacticalview
 earplugs
 holster
 jump
-lagswitchdetection
 mapmarker
 unflip
 magrepack

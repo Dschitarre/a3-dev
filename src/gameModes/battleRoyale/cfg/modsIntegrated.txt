@@ -6,4 +6,3 @@ disabletacticalview
 earplugs
 holster
 jump
-lagswitchdetection

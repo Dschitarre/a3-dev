@@ -148,8 +148,6 @@ BR_fnc_startModsServer = {
     if (missionNamespace getVariable ["J_cba_enabled", true]) then {
         call J_fnc_startJumpServer;
     };
-
-    // lagswitchdetection starts by itself when it is loaded
 };
 
 // ---- parking (where the unit is local) ----

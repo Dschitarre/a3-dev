@@ -1,12 +1,13 @@
 [h2]Entity Culling[/h2]
-Temporarily hides supported entities that are outside the player's view or obscured by terrain or objects. They still simulate and make sound. Entities are revealed when they become visible again, and stopping the addon reveals everything it hid.
+Temporarily hides units, vehicles (including static weapons), ammo boxes and weapon holders that terrain or buildings block from the camera. Each client tests visibility from its own camera, so hiding only affects rendering on that client. Hidden entities still simulate and make sound. Entities are revealed when they become visible again, and stopping the addon reveals everything it hid.
 
 [h2]Server settings[/h2]
 [list]
 [*]Frame budget (1 ms by default): how much time each client can spend on visibility tests per frame.
-[*]Protected distance (10 m): entities close to the camera or the player and their vehicle remain visible.
+[*]Minimum distance (10 m): entities this close to the camera or to the player's unit or vehicle are never hidden.
 [*]Check interval (0.2 s) and consecutive checks before hiding (3).
-[*]Movement look-ahead (0.5 s) and a debug overlay for hidden entities, worker time and FPS.
+[*]Prediction (0.5 s): how much camera and entity movement a check covers.
+[*]Debug overlay (off): hidden and checked entities, worker time and FPS on every client.
 [/list]
 
 [h2]How to enable it[/h2]

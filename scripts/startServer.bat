@@ -5,8 +5,10 @@ rem and launches arma3server_x64.exe with the template's server.cfg and mods.
 rem   mods.txt          workshop item ids (from cfg\workshopModsPath.txt)
 rem   modsOfficial.txt  official mod/DLC folders, e.g. gm
 rem   serverMods.txt    own mods from build\mods, loaded server-side only
-rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod (deployMapMod.ps1)
-rem Usage: startServer.bat <template>
+rem   clientMods.txt    (optional) own mods from build\mods every client needs too, e.g. a map mod (deployMapMod.bat)
+rem Usage: startServer.bat <template> [true|false]
+rem   2nd argument: start the dedicated culling HC (default: cfg\cullingHC.txt); the mission must contain the HC slot
+rem   (build.ps1 -CullingHC true)
 
 setlocal enabledelayedexpansion
 
@@ -17,6 +19,9 @@ if "%template%"=="" (
 )
 
 call "%~dp0loadCfg.bat"
+if not "%~2"=="" (
+    set "cullingHC=%~2"
+)
 set "templatePath=%basePath%\templates\%template%"
 if not exist "%templatePath%\server.cfg" (
     echo Template "%template%" not found.
@@ -90,7 +95,7 @@ start "" arma3server_x64.exe ^
     -mod="!mods!" ^
     -serverMod="!serverMods!"
 
-rem dedicated culling HC only with cfg\cullingHC.txt = true
+rem dedicated culling HC only with cullingHC = true (2nd argument or cfg\cullingHC.txt)
 if /i "%cullingHC%"=="true" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0startCullingClient.ps1" -Template "%template%" -Detach
 )

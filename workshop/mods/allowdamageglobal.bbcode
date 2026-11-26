@@ -1,5 +1,5 @@
-Use [code][entity, false] call ADG_fnc_allowDamage;[/code] to disable damage for an entity in multiplayer. Pass [b]true[/b] to enable it again.
+Call [b]ADG_fnc_allowDamage[/b] with [b]false[/b] to disable damage for an entity in multiplayer. Pass [b]true[/b] to enable it again. The function can be called on the server or any client, not only where the entity is local.
 
-The addon reapplies the selected state when ownership moves between the server, a client or a headless client. For example, a vehicle set to invulnerable stays invulnerable when a player gets in and takes ownership. Players who join later receive the current state.
+The addon reapplies the selected state when ownership moves between the server, a client or a headless client. For example, a vehicle set to invulnerable stays invulnerable when a player gets in and takes ownership. Players who join later receive the current state. The addon starts automatically in every mission; no Eden module or CBA is needed. The server sends its scripts to connected and joining clients.
 
 [url=https://github.com/Dschitarre/a3-dev/tree/master/src/mods/allowdamageglobal]Source code[/url]

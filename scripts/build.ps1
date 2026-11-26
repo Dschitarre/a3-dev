@@ -26,6 +26,7 @@
     build.ps1 -GameMode sectorControl               # every map of one game mode
     build.ps1 -GameMode sectorControl -Map Altis    # one mission
     build.ps1 -Template sectorControlAltis          # game mode and maps of templates\<name>
+    build.ps1 -Template sectorControlAltis -CullingHC true   # same, with the culling HC slot (overrides cfg\cullingHC.txt)
     build.ps1 -Missions -StageOnly                  # only assemble the mission folders in build\stage (no packing)
 #>
 [CmdletBinding(PositionalBinding = $false)]
@@ -37,6 +38,7 @@ param(
     [string]$GameMode,
     [string[]]$Map,
     [string]$Template,
+    [ValidateSet('', 'true', 'false')][string]$CullingHC = '',
     [switch]$StageOnly
 )
 
@@ -327,8 +329,8 @@ function Build-Mission([string]$GameModeName, [string]$MapName) {
         Write-Host "  playable slots per side: $playableSlots (added $(($added.GetEnumerator() | ForEach-Object { "$($_.Key) $($_.Value)" }) -join ', '))"
     }
 
-    # dedicated culling HC (scripts\culling.ps1): only with cfg\cullingHC.txt = true
-    if ($isMultiplayer -and (Read-Cfg cullingHC -Optional) -eq 'true') {
+    # dedicated culling HC (scripts\culling.ps1): -CullingHC, else cfg\cullingHC.txt
+    if ($isMultiplayer -and $script:CullingHC -eq 'true') {
         Add-CullingSlot $missionPath (Get-CfgConvert)
     }
 
@@ -350,13 +352,34 @@ function Build-Mission([string]$GameModeName, [string]$MapName) {
 
 function Build-Mod([string]$ModName) {
     $source = Join-Path $Root "src\mods\$ModName"
-    if (-not (Test-Path (Join-Path $source "addons\$ModName"))) {
-        throw "mod '$ModName' not found ($source\addons\$ModName)"
+    $addon = Join-Path $source "addons\$ModName"
+    if (-not (Test-Path $addon)) {
+        throw "mod '$ModName' not found ($addon)"
     }
 
     Write-Host "mod $ModName"
     $modPath = Join-Path $Root "build\mods\$ModName"
     Remove-Directory $modPath
+    $nativePrefix = Read-List (Join-Path $source 'cfg\nativePrefix.txt') | Select-Object -First 1
+
+    if ($nativePrefix) {
+        # The terrain and its config are already in engine formats. Keep their internal path and pack them as-is.
+        $tools = Split-Path (Split-Path $script:AddonBuilder -Parent) -Parent
+        $addons = Join-Path $modPath 'addons'
+        $keys = Join-Path $modPath 'keys'
+        $pbo = Join-Path $addons "$ModName.pbo"
+        New-Item -ItemType Directory -Path $addons, $keys -Force | Out-Null
+        & (Join-Path $tools 'FileBank\FileBank.exe') -property "prefix=$nativePrefix" -dst $addons $addon | Out-Host
+        if ($LASTEXITCODE -ne 0 -or !(Test-Path $pbo)) { throw "could not pack native addon $ModName" }
+
+        & (Join-Path $tools 'DSSignFile\DSSignFile.exe') (Join-Path $Root "cfg\keys\$script:KeyName.biprivatekey") $pbo | Out-Host
+        if ($LASTEXITCODE -ne 0 -or !(Test-Path "$pbo.$script:KeyName.bisign")) { throw "could not sign native addon $ModName" }
+        Copy-Item (Join-Path $Root "cfg\keys\$script:KeyName.bikey") $keys
+        Copy-Item (Join-Path $source 'mod.cpp') $modPath
+        Write-Host "  packed $ModName.pbo"
+        return
+    }
+
     Copy-Item $source $modPath -Recurse
     Copy-Item (Join-Path $Root "cfg\keys\$script:KeyName.bikey") $modPath
 
@@ -422,6 +445,11 @@ if ($StageOnly -and $modNames) {
 }
 
 $script:KeyName = Read-Cfg keyName
+$script:CullingHC = if ($CullingHC) {
+    $CullingHC
+} else {
+    Read-Cfg cullingHC -Optional
+}
 if (-not $StageOnly) {
     $script:AddonBuilder = Get-AddonBuilder
 }
@@ -429,7 +457,10 @@ if (-not $StageOnly) {
 $startTime = Get-Date
 $jobs = @()
 foreach ($m in ($modNames | Select-Object -Unique)) {
-    $jobs += Build-Mod $m
+    $job = Build-Mod $m
+    if ($job) {
+        $jobs += $job
+    }
 }
 foreach ($mission in $missionList) {
     $job = Build-Mission $mission[0] $mission[1]
@@ -440,6 +471,10 @@ foreach ($mission in $missionList) {
 
 if ($StageOnly) {
     Write-Host "staged $($missionList.Count) mission(s) in build\stage"
+    exit 0
+}
+
+if (!$jobs) {
     exit 0
 }
 
