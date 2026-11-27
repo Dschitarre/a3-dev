@@ -1,9 +1,15 @@
 // Unflip (server): publishes the settings, starts / stops the hold action on every client (including JIP) and
-// unflips the vehicles of the AI (UF_var_aiAutoUnflip) once they have been flipped for UF_var_aiDelay seconds.
+// unflips the vehicles of the AI (UF_var_aiAutoUnflip) once they have been flipped for UF_var_aiDelay seconds, and
+// the vehicles a mission wants unflipped automatically (UF_var_autoUnflipDelay).
 
 UF_var_remoteExecId = "";
 UF_var_aiScript = scriptNull;
 UF_var_aiCheckInterval = 3;    // seconds between two checks of all vehicles
+
+// mission hook (server; missions may set it before or after the mod loads): [vehicle] -> seconds after which the
+// flipped vehicle is unflipped automatically whoever it belongs to (players' vehicles too), -1 for none (e.g. any
+// vehicle in a base). An AI vehicle takes the shorter one of this and UF_var_aiDelay.
+if (isNil "UF_var_autoUnflipDelay") then {UF_var_autoUnflipDelay = {-1};};
 
 // settings the start publishes (defaults in fnc_clientServer.sqf, which on the server may load after this file)
 UF_var_settings = [
@@ -58,9 +64,23 @@ UF_fnc_playerNear = {
     ((_vehicle nearEntities ["CAManBase", _radius]) findIf {isPlayer _x}) != -1
 };
 
+// the seconds after which a flipped vehicle is unflipped automatically, -1 for never: the mission's delay
+// (UF_var_autoUnflipDelay), an AI vehicle at the latest after UF_var_aiDelay (UF_var_aiAutoUnflip)
+UF_fnc_autoUnflipDelay = {
+    params ["_vehicle"];
+
+    private _delay = [_vehicle] call UF_var_autoUnflipDelay;
+
+    if (UF_var_aiAutoUnflip && {[_vehicle] call UF_fnc_isAiVehicle}) then {
+        _delay = [UF_var_aiDelay, _delay min UF_var_aiDelay] select (_delay >= 0);
+    };
+
+    _delay
+};
+
 // one pass over all land vehicles and boats: notes who sits in each, counts how long each one is flipped (and
-// standing still) and unflips the AI vehicles among them after UF_var_aiDelay. The timer runs for every vehicle, so
-// one that becomes an AI vehicle later (assigned) does not wait again.
+// standing still) and unflips those with an automatic unflip (UF_fnc_autoUnflipDelay) after their delay. The timer
+// runs for every vehicle, so one that becomes an AI vehicle later (assigned) does not wait again.
 UF_fnc_aiCheck = {
     {
         private _vehicle = _x;
@@ -76,9 +96,11 @@ UF_fnc_aiCheck = {
             if (_flippedSince < 0) then {
                 _vehicle setVariable ["UF_var_flippedSince", time];
             } else {
+                private _delay = [_vehicle] call UF_fnc_autoUnflipDelay;
+
                 if (
-                    ((time - _flippedSince) >= UF_var_aiDelay) &&
-                    {[_vehicle] call UF_fnc_isAiVehicle} &&
+                    (_delay >= 0) &&
+                    {(time - _flippedSince) >= _delay} &&
                     {!([_vehicle] call UF_fnc_playerNear)}
                 ) then {
                     _vehicle setVariable ["UF_var_flippedSince", nil];
@@ -93,7 +115,7 @@ UF_fnc_aiCheck = {
 
 UF_fnc_aiLoop = {
     while {true} do {
-        if (UF_var_enabled && {UF_var_aiAutoUnflip}) then {
+        if UF_var_enabled then {
             call UF_fnc_aiCheck;
         };
 

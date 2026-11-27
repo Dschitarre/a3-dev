@@ -4,17 +4,24 @@
 
 SC_var_despawnTimeRecoveryFactor = 4;
 
-// despawn countdown of an object: refilled while a unit (of _side, sideUnknown: any) is closer than _minDistance,
-// drained by the distance otherwise; also the side ownership timer of vehicles
+// despawn countdown (seconds) of an object: refilled while a unit (of _side, sideUnknown: any) is closer than
+// _minDistance, drained otherwise by the seconds since its last update, faster by the distance beyond _minDistance
+// (the drain was the distance alone, per update: a unit just outside _minDistance stopped it, so dead bodies at busy
+// sectors never went, user 2026-11-27); also the side ownership timer of vehicles. _timerVar: the object variable of
+// the timer, the time of its last update is kept next to it.
 SC_fnc_getNewDespawnTime = {
-    params ["_object", "_timeRemaining", "_maxTime", "_minDistance", "_searchFactor", ["_depletionFactor", 1], ["_side", sideUnknown]];
+    params ["_object", "_timeRemaining", "_maxTime", "_minDistance", "_searchFactor", ["_depletionFactor", 1], ["_side", sideUnknown], ["_timerVar", "SC_var_timeRemaining"]];
+
+    private _updatedVar = _timerVar + "Updated";
+    private _elapsed = time - (_object getVariable [_updatedVar, time]);
+    _object setVariable [_updatedVar, time];
 
     private _distanceNearest = [_object, ["CAManBase"], _searchFactor * _minDistance, _side] call SC_fnc_distanceOfNearestObject;
 
     if (_distanceNearest < _minDistance) then {
         _maxTime min (_timeRemaining + (SC_var_despawnTimeRecoveryFactor * (_minDistance - _distanceNearest)))
     } else {
-        0 max (_timeRemaining - (_depletionFactor * (_distanceNearest - _minDistance)))
+        0 max (_timeRemaining - (_depletionFactor * ((_distanceNearest - _minDistance) max _elapsed)))
     }
 };
 

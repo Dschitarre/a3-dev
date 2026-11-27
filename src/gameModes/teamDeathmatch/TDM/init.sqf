@@ -314,8 +314,9 @@ DM_fnc_initClient = {
     0 fadeSound 0;
     player setPos [0, 0, 100];
 
-    // earplugs mod: while the unit is not simulated (loading, benched, spectating) the mission sets the sound volume
-    E_var_suspendCondition = {!simulationEnabled player};
+    // earplugs mod: while the heard unit is not simulated (loading, benched, the spectator camera parked) the mission
+    // sets the sound volume; spectating a living unit, its vehicle puts the automatic earplugs in
+    E_var_suspendCondition = {!simulationEnabled (call E_fnc_listenerUnit)};
     setPlayerRespawnTime DM_var_noRespawnTime;
 
     call CMN_fnc_showLoadingScreen;

@@ -35,7 +35,9 @@ BR_fnc_respawn = {
 BR_fnc_startSpectator = {
     call CMN_fnc_hideCenterText;
     cutText ["", "PLAIN", 0, true];
-    1 fadeSound 1;
+
+    // with the earplugs that are in (earplugs mod; the spectated unit's vehicle once the spectator is on it)
+    1 fadeSound (call (missionNamespace getVariable ["E_fnc_effectiveVolume", {1}]));
 
     private _teamAlive = ((call BR_fnc_myTeammates) findIf {alive _x && {_x != player}}) != -1;
 

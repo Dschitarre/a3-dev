@@ -47,7 +47,7 @@ E_var_iconTexture = if (fileExists "modsIntegrated\earplugs\scripts\fnc_client.s
 
 // true while the mission sets the sound volume itself (loading and black screens, its own spectator, round end): the
 // mod changes nothing, F1 does nothing and the icon is hidden; afterwards (E_var_resumeDelay) the mod puts the
-// earplugs back in. Always suspended while the player is dead or in the vanilla spectator.
+// earplugs back in. Always suspended while nobody living is heard (dead and not spectating a living unit).
 if (isNil "E_var_suspendCondition") then {E_var_suspendCondition = {false};};
 
 // false hides the icon, e.g. together with the mission's HUD
@@ -110,15 +110,20 @@ call E_fnc_loadSettings;
 
 // ---- volume ----
 
-// the unit the player hears the world through: the unit remote controlled by Zeus while remote controlling
+// the unit the player hears the world through: the unit remote controlled by Zeus while remote controlling; while
+// spectating (dead, or in the vanilla spectator) the unit the camera is on (focusOn: switchCamera of a mission's own
+// spectator, the focus of the vanilla one), so its vehicle's engine puts the automatic earplugs in as for the player
 E_fnc_listenerUnit = {
     private _remoteControlled = missionNamespace getVariable ["bis_fnc_moduleRemoteControl_unit", objNull];
 
-    [_remoteControlled, player] select (isNull _remoteControlled)
+    if (!isNull _remoteControlled) exitWith {_remoteControlled};
+    if (!alive player || {!isNull findDisplay 60492}) exitWith {focusOn};
+
+    player
 };
 
-// the vehicle the player hears: a drone he controls (the camera is on it, its engine is what he hears), else the
-// unit's vehicle; objNull on foot, dead, in a static weapon, a parachute (counts as aircraft) or a UAV he sits in
+// the vehicle the player hears: a drone the listener controls (the camera is on it, its engine is what he hears), else
+// the unit's vehicle; objNull on foot, dead, in a static weapon, a parachute (counts as aircraft) or a UAV he sits in
 E_fnc_listenerVehicle = {
     params ["_unit"];
 
@@ -179,8 +184,10 @@ E_fnc_fadeTo = {
     E_var_fadeEnd = time + _duration;
 };
 
+// without a living listener (dead and not spectating a living unit, the free camera of the vanilla spectator) the
+// mission has the sound in hand (black screens, muted respawn menu)
 E_fnc_isSuspended = {
-    !alive player || {!isNull findDisplay 60492} || {call E_var_suspendCondition}
+    !alive (call E_fnc_listenerUnit) || {call E_var_suspendCondition}
 };
 
 // Unscheduled (the loop calls it in isNil, the keys and the dialog directly): fades to the effective volume when it

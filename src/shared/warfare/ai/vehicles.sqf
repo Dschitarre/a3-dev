@@ -762,7 +762,8 @@ SC_fnc_updateVehicleOwnership = {
             _minDistance,
             2,
             _depletionFactor,
-            _ownerSide
+            _ownerSide,
+            "SC_var_ownershipTime"
             ] call SC_fnc_getNewDespawnTime;
 
             if (_ownershipTime <= 0) then {

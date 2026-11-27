@@ -2,6 +2,10 @@
 
 // ---- server init ----
 
+// seconds an overturned vehicle in a base lies before it is put back on its wheels (unflip mod; the mod also waits
+// until it stands still and no player is right next to it)
+SC_var_baseUnflipDelay = 3;
+
 // server init: called from initServer.sqf after all functions are compiled; starts the server loops
 SC_fnc_initServer = {
     call SC_fnc_initKillFeedServer;
@@ -58,6 +62,14 @@ SC_fnc_initServer = {
         call H_fnc_startHolsterServer;
     };
     if (missionNamespace getVariable ["UF_cba_enabled", true]) then {
+        // a vehicle that overturns in a base is put back on its wheels after SC_var_baseUnflipDelay, whoever's it is
+        // (user 2026-11-27); helicopters: SC_fnc_updateVehicle
+        UF_var_autoUnflipDelay = {
+            params ["_vehicle"];
+
+            [-1, SC_var_baseUnflipDelay] select ((SC_var_sides findIf {_vehicle inArea ("SC_var_" + (toLower (str _x)) + "Base")}) != -1)
+        };
+
         call UF_fnc_startUnflipServer;
     };
     if (missionNamespace getVariable ["MR_cba_enabled", true]) then {

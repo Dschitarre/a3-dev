@@ -93,8 +93,9 @@ SC_fnc_onRespawn = {
 // The SPECTATE button (and its panel) appear in the middle of the fade in to the respawn map (user 2026-11-26): after
 // the kill cam the killfeed fades in (KF_var_menuFadeInHalfAt); without it the vanilla respawn menu blacks out and in
 // (a3\functions_f\Respawn: respawn delay > 5 s: black out after 3 s, black in at 4 s for 1 s; > 2 s: after 0.5 s,
-// black in at 1.5 s), so the middle is 4.5 s / 2 s after the menu opened. A menu opened again later (back from the
-// spectator) shows them at once.
+// black in at 1.5 s), so the middle is 4.5 s / 2 s after the menu opened. The vanilla menu does that only while the
+// dead player is simulated: not after the base "Teleport" (SC_fnc_teleportToPlayZone disables the old unit's
+// simulation), which shows them at once, as does a menu opened again later (back from the spectator).
 SC_fnc_showRespawnMapButtonsDelayed = {
     params ["_display"];
 
@@ -102,7 +103,8 @@ SC_fnc_showRespawnMapButtonsDelayed = {
     private _deathTime = missionNamespace getVariable ["SC_var_deathTime", -1];
     private _firstMenu = (missionNamespace getVariable ["SC_var_respawnMenuDeath", -2]) != _deathTime;
     private _killCamHalf = missionNamespace getVariable ["KF_var_menuFadeInHalfAt", -1];
-    private _vanillaBlackOut = isNil {uiNamespace getVariable "BIS_RscRespawnControls_skipBlackOut"};
+    // the conditions of the vanilla black out (a3\functions_f\Respawn, the menu's "open")
+    private _vanillaBlackOut = (isNil {uiNamespace getVariable "BIS_RscRespawnControls_skipBlackOut"}) && {simulationEnabled player};
     SC_var_respawnMenuDeath = _deathTime;
 
     private _showAt = switch (true) do {

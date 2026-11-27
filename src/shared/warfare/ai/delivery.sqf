@@ -51,9 +51,19 @@ SC_var_aiDeliveryNearDistance = 50;
 // the sectors its AI squads attack (each squad counts), else the enemies' sectors, else the neutral ones (summed
 // distances). Own sectors are safe, so the vehicle stands right behind the fighting instead of at the first own sector
 // next to any sector the side doesn't own (on huge maps often one near the base). Without own sectors the side's
-// nearest sector it doesn't own (the vehicle waits behind it).
+// nearest sector it doesn't own (the vehicle waits behind it). _taken: sectors left out while others are left (the
+// sectors of the side's other spawn vehicles, SC_fnc_aiVehicleAnchors).
 SC_fnc_aiDeliveryAnchors = {
-    params ["_side"];
+    params ["_side", ["_taken", []]];
+
+    // the first _count of _sorted without the taken sectors, all of _sorted if they are all taken
+    private _pick = {
+        params ["_sorted", "_count", "_taken"];
+
+        private _free = _sorted - _taken;
+
+        ([_sorted, _free] select (_free isNotEqualTo [])) select [0, _count]
+    };
 
     private _own = SC_var_sectors select {(missionNamespace getVariable ("SC_var_owner" + _x)) == _side};
     private _other = SC_var_sectors - _own;
@@ -85,18 +95,37 @@ SC_fnc_aiDeliveryAnchors = {
 
         private _targetCenters = _targets apply {getMarkerPos ("SC_var_sector" + _x)};
 
-        ([_own, [], {
+        [([_own, [], {
             private _center = getMarkerPos ("SC_var_sector" + _x);
             private _sum = 0;
 
             {_sum = _sum + (_x distance2D _center)} forEach _targetCenters;
             _sum
-        }, "ASCEND"] call BIS_fnc_sortBy) select [0, 2]
+        }, "ASCEND"] call BIS_fnc_sortBy), 2, _taken] call _pick
     };
 
     private _basePos = getMarkerPos ("SC_var_" + (toLower (str _side)) + "Respawn");
 
-    [([_other, [], {(getMarkerPos ("SC_var_sector" + _x)) distance2D _basePos}, "ASCEND"] call BIS_fnc_sortBy) select 0]
+    [([_other, [], {(getMarkerPos ("SC_var_sector" + _x)) distance2D _basePos}, "ASCEND"] call BIS_fnc_sortBy), 1, _taken] call _pick
+};
+
+// The parking sectors of one spawn vehicle: those of its side without the sectors its other spawn vehicles were sent
+// to (SC_var_aiDeliverySector: where one is parked or being taken), so trucks and helicopters spread over the front
+// instead of all waiting at the same sectors (user 2026-11-27)
+SC_fnc_aiVehicleAnchors = {
+    params ["_vehicle", "_side"];
+
+    private _taken = [];
+
+    {
+        private _other = _x get "vehicle";
+
+        if (((_x get "side") == _side) && {alive _other} && {_other isNotEqualTo _vehicle}) then {
+            _taken pushBackUnique (_other getVariable ["SC_var_aiDeliverySector", ""]);
+        };
+    } forEach SC_var_spawnVehicleSlots;
+
+    [_side, _taken - [""]] call SC_fnc_aiDeliveryAnchors
 };
 
 // share (0 - 1) of the lines of sight from a spot (2 m above it) towards the enemy points (up to 500 m in their
@@ -215,14 +244,15 @@ SC_fnc_aiRateParkingSpot = {
     ([0, 0.3] select (_pos inArea _marker))
 };
 
-// Parking spot of a spawn vehicle near the front sectors, on their side that faces the own base, a bit outside their
+// Parking spot of a spawn vehicle near its parking sectors (_anchors, SC_fnc_aiVehicleAnchors), on their side that
+// faces the own base, a bit outside their
 // edge (scaled with the sector spacing). Half of the candidates lie right behind a building, wall, rock or tree there
 // (on the side away from the nearest enemy sector), the others at random places; each is moved to a place that is
 // free for the vehicle (a helicopter: a free flat landing zone). The best rated one; if none has the cover
 // SC_var_aiParkingMinCover, the best one with a third of it (never on or at a road). [position, rating, sector] or []
 // if no candidate is usable.
 SC_fnc_aiFindParkingSpot = {
-    params ["_vehicle", "_side"];
+    params ["_vehicle", "_side", "_anchors"];
 
     private _isAir = _vehicle isKindOf "Air";
     private _type = typeOf _vehicle;
@@ -276,7 +306,7 @@ SC_fnc_aiFindParkingSpot = {
                 _candidates pushBack [_candidate, _sectorInd, _enemyPoints];
             };
         };
-    } forEach ([_side] call SC_fnc_aiDeliveryAnchors);
+    } forEach _anchors;
 
     // the side's other spawn vehicles (trucks and helicopters): where they stand, or where they are being taken - a spot
     // close to one of them is taken only if there is no other (user 2026-11-26: not parked next to each other)
@@ -324,12 +354,12 @@ SC_fnc_aiFindParkingSpot = {
     _best
 };
 
-// distance from a position to the front: the edge of the nearest parking sector (SC_fnc_aiDeliveryAnchors; 0 if there
-// is none)
+// distance from a position to the front: the edge of the nearest of a spawn vehicle's parking sectors (_anchors,
+// SC_fnc_aiVehicleAnchors; 0 if there is none)
 SC_fnc_aiFrontDistance = {
-    params ["_pos", "_side"];
+    params ["_pos", "_anchors"];
 
-    private _distances = ([_side] call SC_fnc_aiDeliveryAnchors) apply {
+    private _distances = _anchors apply {
         private _marker = "SC_var_sector" + _x;
         (_pos distance2D (getMarkerPos _marker)) - (selectMax (getMarkerSize _marker))
     };
@@ -351,7 +381,7 @@ SC_fnc_aiDeliveryFrontLimit = {
 // why a spawn vehicle should be delivered ("" if not): it waits at the base, it was no respawn position for long
 // (enemies near, in the water, outside the play zone, in an enemy base), or the front moved far away from it
 SC_fnc_aiDeliveryReason = {
-    params ["_vehicle", "_side"];
+    params ["_vehicle", "_anchors"];
 
     private _state = _vehicle getVariable ["SC_var_spawnVehicleState", ""];
 
@@ -372,7 +402,7 @@ SC_fnc_aiDeliveryReason = {
 
     if ((_blockedSince >= 0) && {(time - _blockedSince) > SC_var_aiDeliveryBlockedTime}) exitWith {"blocked: " + _state};
 
-    if (([getPosWorld _vehicle, _side] call SC_fnc_aiFrontDistance) > (call SC_fnc_aiDeliveryFrontLimit)) exitWith {"front moved"};
+    if (([getPosWorld _vehicle, _anchors] call SC_fnc_aiFrontDistance) > (call SC_fnc_aiDeliveryFrontLimit)) exitWith {"front moved"};
 
     ""
 };
@@ -492,7 +522,8 @@ SC_fnc_aiPlanDeliveries = {
             {((crew _vehicle) findIf {(alive _x) && {isPlayer _x}}) == -1} &&
             {time >= (_vehicle getVariable ["SC_var_aiDeliveryNext", 0])}
         ) then {
-            private _reason = [_vehicle, _side] call SC_fnc_aiDeliveryReason;
+            private _anchors = [_vehicle, _side] call SC_fnc_aiVehicleAnchors;
+            private _reason = [_vehicle, _anchors] call SC_fnc_aiDeliveryReason;
 
             if (_reason == "") exitWith {
                 // a parked vehicle is checked again later, one at the base at every pass
@@ -511,7 +542,7 @@ SC_fnc_aiPlanDeliveries = {
 
             _fetcher params ["_squad", "_driver"];
 
-            private _spot = [_vehicle, _side] call SC_fnc_aiFindParkingSpot;
+            private _spot = [_vehicle, _side, _anchors] call SC_fnc_aiFindParkingSpot;
 
             if (_spot isEqualTo []) exitWith {
                 _vehicle setVariable ["SC_var_aiDeliveryNext", time + SC_var_aiDeliveryRetryTime];
@@ -524,11 +555,14 @@ SC_fnc_aiPlanDeliveries = {
             if (
                 (_reason == "front moved") &&
                 {([_destination,
-                    _side] call SC_fnc_aiFrontDistance) >(([getPosWorld _vehicle,
-                    _side] call SC_fnc_aiFrontDistance) -(0.5 *(call SC_fnc_aiDeliveryFrontLimit)))}
+                    _anchors] call SC_fnc_aiFrontDistance) >(([getPosWorld _vehicle,
+                    _anchors] call SC_fnc_aiFrontDistance) -(0.5 *(call SC_fnc_aiDeliveryFrontLimit)))}
             ) exitWith {
                 _vehicle setVariable ["SC_var_aiDeliveryNext", time + SC_var_aiDeliveryCheckTime];
             };
+
+            // its sector from now on: the side's other spawn vehicles are sent to other sectors
+            _vehicle setVariable ["SC_var_aiDeliverySector", _sectorInd];
 
             // the nearest member leads and drives
             [_squad, _vehicle, _driver,
@@ -607,6 +641,11 @@ SC_fnc_aiEndDelivery = {
         _vehicle setVariable ["SC_var_aiDeliveryNext", time + SC_var_aiDeliveryCheckTime];
         _vehicle setVariable ["SC_var_aiDeliveredSince", _startTime];
     } else {
+        // still at the base: it holds no sector for the side's other spawn vehicles
+        if ((_vehicle getVariable ["SC_var_spawnVehicleState", ""]) == "at the base") then {
+            _vehicle setVariable ["SC_var_aiDeliverySector", nil];
+        };
+
         private _failures = (_vehicle getVariable ["SC_var_aiDeliveryFailures", 0]) + 1;
         _vehicle setVariable ["SC_var_aiDeliveryFailures", _failures];
         _vehicle setVariable ["SC_var_aiDeliveryNext", time + (SC_var_aiDeliveryMaxRetryTime min (SC_var_aiDeliveryRetryTime * (2 ^ (_failures - 1))))];

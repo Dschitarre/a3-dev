@@ -257,7 +257,11 @@ TDI_fnc_addVehicleIcon = {
             2,
             0,
             _symbolScale * TDI_var_vehicleSymbolSize,
-            _widthFactor
+            _widthFactor,
+            true,
+            false,
+            // the symbol looks as big as a side icon of TDI_var_vehicleFarSize / TDI_var_vehicleSymbolSize its size
+            _symbolScale * TDI_var_vehicleSymbolSize / TDI_var_vehicleFarSize
         ];
 
         [_vehicle, _distance, _symbolScale * _sizeFactor, _isUav, _isEmpty, false] call TDI_fnc_addVehicleName;
@@ -529,6 +533,9 @@ TDI_fnc_gatherGroupIcons = {
 // own unit's group icon is yellow). drawIcon3D has one colour for icon and text, so such an icon in another colour
 // draws its text as a second drawIcon3D without a texture at the same place and size (white with the icon's alpha;
 // [] for every other icon: one drawIcon3D, the text in the icon's colour as before - e.g. coloured sector icons).
+// Holding a Windows key enlarges every icon to at least the size from which its text is drawn (text floor);
+// forcedSizeScale: the size of this icon that looks as big as a unit icon of size 1 (far vehicle symbols, whose
+// textures have a wide transparent margin), so it grows to the same visible size.
 TDI_fnc_prepareDrawEntry = {
     params [
         "_distance",
@@ -545,7 +552,8 @@ TDI_fnc_prepareDrawEntry = {
         ["_minSize", 0],
         ["_widthFactor", 1],
         ["_textEnabled", true],
-        ["_whiteText", false]
+        ["_whiteText", false],
+        ["_forcedSizeScale", 1]
     ];
 
     // type 0: above the head, 1: middle of the body (offset unused), 2: origin, 3: flag top, 4: base object,
@@ -583,7 +591,7 @@ TDI_fnc_prepareDrawEntry = {
         _widthFactor,
         _args,
         _textEnabled,
-        _textSizeCutoff max TDI_var_nameMinSize,
+        (_textSizeCutoff max TDI_var_nameMinSize) * _forcedSizeScale,
         _textArgs
     ]
 };

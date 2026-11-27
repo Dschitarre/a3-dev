@@ -69,8 +69,8 @@ TDI_var_otherSideColor = [0.75, 0.75, 0.75, 1];
 
 // game modes add functions that push their own entries into TDI_var_preDrawArray (same arguments as
 // TDI_fnc_gatherUnitIcons); entry format: [distance, positionType, object, [texture, color], sizeFactor,
-// useSqrtZoom, angle, textSizeCutoff, text, shadow, textSizeDivisor, minSize, widthFactor, textEnabled]
-// The last four are optional. Keep text cached even when disabled, so holding Windows can reveal it immediately.
+// useSqrtZoom, angle, textSizeCutoff, text, shadow, textSizeDivisor, minSize, widthFactor, textEnabled, whiteText,
+// forcedSizeScale] (TDI_fnc_prepareDrawEntry). The last six are optional. Keep text cached even when disabled, so holding Windows can reveal it immediately.
 TDI_var_gatherDrawArraysFncs = [];
 TDI_var_preDrawArray = [];
 TDI_var_drawArray = [];

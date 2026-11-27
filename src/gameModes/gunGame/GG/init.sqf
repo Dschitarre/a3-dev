@@ -190,9 +190,9 @@ GG_fnc_initClient = {
     [player, false] call CMN_fnc_setSimulationGlobal;
     0 fadeSound 0;
 
-    // earplugs mod: while the unit is not simulated (loading, spawn out of the zone, round end) the mission sets the
-    // sound volume
-    E_var_suspendCondition = {!simulationEnabled player};
+    // earplugs mod: while the heard unit is not simulated (loading, spawn out of the zone, round end) the mission sets
+    // the sound volume
+    E_var_suspendCondition = {!simulationEnabled (call E_fnc_listenerUnit)};
 
     call CMN_fnc_showLoadingScreen;
     call CMN_fnc_trackPreload;
