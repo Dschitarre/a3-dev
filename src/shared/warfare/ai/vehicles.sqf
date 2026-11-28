@@ -177,8 +177,8 @@ SC_fnc_aiTakeVehicleSlot = {
 SC_var_aiVehicleRequestTime = 300;
 SC_var_aiPendingVehicleGroups = [];
 
-// Initial spawning and the squad loop share one in-flight request. Queueing a second asynchronous
-// spawn used to produce vehicles after the requester had already found transport or walked away.
+// Initial spawning and the squad loop share one in-flight request: a second asynchronous spawn would produce a
+// vehicle after the requester has already found transport or walked away.
 SC_fnc_aiQueueVehicle = {
     params ["_unit", "_place", "_type"];
 
@@ -714,7 +714,7 @@ SC_fnc_aiIsSeenByPlayers = {
 // [min distance, depletion factor] of the despawn / ownership timer of a vehicle. On a base's vehicle or plane spawn
 // point an empty vehicle goes faster and only units close to it (10 m) keep it, so the spawn point does not stay
 // blocked. Everywhere else, the rest of a base included (whole-map bases are 600 - 1700 m wide), the normal rule: units
-// within SC_var_minDistanceFromVehicleToDespawn keep it (user 2026-11-26: a tank next to a player despawned in a base).
+// within SC_var_minDistanceFromVehicleToDespawn keep it.
 SC_var_spawnPointDespawnDistance = 10;
 
 SC_fnc_getVehicleTimerParams = {
@@ -750,6 +750,7 @@ SC_fnc_updateVehicleOwnership = {
     if (_crewAlive isNotEqualTo []) then {
         _ownerSide = side (group (_crewAlive select 0));
         _ownershipTime = SC_var_vehicleOwnershipTime;
+        [_vehicle, "SC_var_ownershipTime"] call SC_fnc_pauseDespawnTime;
     } else {
 
         if (_ownerSide in SC_var_sides) then {
@@ -875,7 +876,12 @@ SC_fnc_updateVehicle = {
         [_counts, _vehicle, SC_var_sides find ([_vehicle, _crewAlive] call SC_fnc_updateVehicleOwnership)] call SC_fnc_addVehicleCount;
     };
 
-    if (!_checkIfAlone || {isNull _vehicle}) exitWith {};
+    if (isNull _vehicle) exitWith {};
+
+    // a vehicle in use: its despawn countdown pauses (it goes on from the next update once the vehicle is alone)
+    if !_checkIfAlone exitWith {
+        [_vehicle] call SC_fnc_pauseDespawnTime;
+    };
 
     private _timeRemaining = _vehicle getVariable "SC_var_timeRemaining";
 
@@ -890,6 +896,7 @@ SC_fnc_updateVehicle = {
 
     ) exitWith {
         _vehicle setVariable ["SC_var_timeRemaining", SC_var_vehicleDespawnTime];
+        [_vehicle] call SC_fnc_pauseDespawnTime;
     };
 
     ([_vehicle] call SC_fnc_getVehicleTimerParams) params ["_minDistanceFromVehicleToDespawn", "_despawnTimeDepletionFactor"];

@@ -5,10 +5,9 @@
 SC_var_despawnTimeRecoveryFactor = 4;
 
 // despawn countdown (seconds) of an object: refilled while a unit (of _side, sideUnknown: any) is closer than
-// _minDistance, drained otherwise by the seconds since its last update, faster by the distance beyond _minDistance
-// (the drain was the distance alone, per update: a unit just outside _minDistance stopped it, so dead bodies at busy
-// sectors never went, user 2026-11-27); also the side ownership timer of vehicles. _timerVar: the object variable of
-// the timer, the time of its last update is kept next to it.
+// _minDistance, drained otherwise by the seconds since its last update, faster by the distance beyond _minDistance;
+// also the side ownership timer of vehicles. _timerVar: the object variable of the timer, the time of its last update
+// is kept next to it.
 SC_fnc_getNewDespawnTime = {
     params ["_object", "_timeRemaining", "_maxTime", "_minDistance", "_searchFactor", ["_depletionFactor", 1], ["_side", sideUnknown], ["_timerVar", "SC_var_timeRemaining"]];
 
@@ -23,6 +22,14 @@ SC_fnc_getNewDespawnTime = {
     } else {
         0 max (_timeRemaining - (_depletionFactor * ((_distanceNearest - _minDistance) max _elapsed)))
     }
+};
+
+// pauses a despawn countdown (SC_fnc_getNewDespawnTime) while it isn't updated, e.g. a vehicle in use: the next update
+// drains nothing for the time of the pause
+SC_fnc_pauseDespawnTime = {
+    params ["_object", ["_timerVar", "SC_var_timeRemaining"]];
+
+    _object setVariable [(_timerVar + "Updated"), nil];
 };
 
 SC_fnc_distanceOfNearestObject = {
