@@ -44,8 +44,8 @@ BR_var_aiStuckIgnoreDistance = 15;  // this close to its destination an AI is ne
 BR_var_aiDetourDistance = 30;
 BR_var_aiUnstickRadius = 30;        // last resort for a stuck AI: a free spot within this distance
 BR_var_aiTrapTime = 60;             // an AI ordered on its way that moved less than BR_var_aiTrapDistance for this long
-BR_var_aiTrapDistance = 2;          // inside a building is caught in it (BR_fnc_aiCheckTrapped) ... (1 m: an AI crawling
-                                    // with hurt legs on a container top jittered 1.4 m and was never counted - pd66)
+BR_var_aiTrapDistance = 2;          // inside a building is caught in it (BR_fnc_aiCheckTrapped) ... (an AI crawling with
+                                    // hurt legs on a container top jitters about 1.4 m)
 BR_var_aiTrapOrderAge = 30;         // ... (its last move order at most this old) ...
 BR_var_aiTrapExitRadius = 14;       // ... and is put on a free spot outside of it within this distance
 BR_var_aiOpenTrapExit = [8, 12, 16];  // m: caught in the open (walls, sandbags, wire around it), it is put this far away
@@ -54,7 +54,7 @@ BR_var_aiHealDamage = 0.3;          // an AI out of a fight heals itself above t
 BR_var_aiHealLegDamage = 0.5;       // ... or with legs hit this much (it limps) ...
 BR_var_aiHealInterval = 20;         // ... at most this often
 BR_var_aiHealItems = ["FirstAidKit", "Medikit"];
-BR_var_aiMedikitDamage = 0.5;       // an AI this hurt uses a medikit first (else a first aid kit; user 2026-11-23)
+BR_var_aiMedikitDamage = 0.5;       // an AI this hurt uses a medikit first (else a first aid kit)
 BR_var_aiIdleTime = 30;             // an AI that moved less than BR_var_aiIdleMoveDistance for this long gets a new task
 BR_var_aiIdleMoveDistance = 5;      // (not in a fight, not holding cover in the end phase) ...
 BR_var_aiIdleUnstickCount = 2;      // ... and after this many new tasks in a row at the same spot it heads into the zone,
@@ -142,8 +142,8 @@ BR_fnc_aiGroupSettings = {
     _group setSpeedMode "FULL";
     _group allowFleeing 0;
     // The fights are BR's (BR\aiCombat.sqf: doTarget/doFire, cover, approach, withdrawal). The engine's own ATTACK
-    // orders (the AI leads its own group) override those moves like its rearming does, and with an enemy it could not
-    // get at the AI stood in place for minutes (2 per Altis match, br389).
+    // orders (the AI leads its own group) override those moves like its rearming does, and with an enemy it cannot
+    // get at the AI stands in place.
     _group enableAttack false;
 };
 
@@ -504,7 +504,7 @@ BR_fnc_aiNewTask = {
         [_unit] call BR_fnc_aiEndLootRun;
     };
 
-    // a supply crate stays the task (the user wants the AI to use them): only the way there is ordered anew
+    // a supply crate stays the task: only the way there is ordered anew
     private _crate = _unit getVariable ["BR_var_aiCrate", objNull];
 
     if (!_urgent && {!isNull _crate} && {[_crate] call BR_fnc_aiCrateWanted}) exitWith {
@@ -605,7 +605,7 @@ BR_fnc_aiZoneLandmass = {
 
 /*
     Out of a fight: a first aid kit or medikit against the damage (zone, hits), through the same timed use as players
-    (BR\items.sqf, user 2026-11-23): a medikit when badly hurt (BR_var_aiMedikitDamage), else a first aid kit (up to
+    (BR\items.sqf): a medikit when badly hurt (BR_var_aiMedikitDamage), else a first aid kit (up to
     75 %), the other kit if the preferred one is missing or cannot help. True while the unit heals.
 */
 BR_fnc_aiHeal = {
@@ -673,12 +673,12 @@ BR_fnc_aiSetTravelMode = {
 /*
     The engine's own rearming (from bodies and loot lying around) loops for good when the magazines do not fit into the
     inventory or cannot be reached, and the unit stands still. It cannot be switched off: cancelled, the engine starts it
-    again at once next to the magazines and within 3 minutes from 60 m away, also in a new group (probe rp383). So after
+    again at once next to the magazines and within 3 minutes from 60 m away, also in a new group. So after
     BR_var_aiRearmMaxTime the unit takes what it can use around it (BR_fnc_aiRearmNearby); a primary still without any
-    round cannot be supplied here (machine gunners without vest or backpack stood up to 18 minutes): it is dropped, and
-    the unit looks for a weapon it can supply (BR_fnc_aiSeekWeapon, BR_fnc_aiCanFeed) - without one there is nothing
-    left to rearm. Cancelling at once while the unit had ammo made it worse: the engine restarted every tick, our
-    doStop answered every tick, and the unit froze for the rest of the match.
+    round cannot be supplied here (e.g. a machine gunner without vest or backpack): it is dropped, and the unit looks
+    for a weapon it can supply (BR_fnc_aiSeekWeapon, BR_fnc_aiCanFeed) - without one there is nothing left to rearm.
+    No cancelling at once while the unit has ammo: the engine would restart every tick, the doStop answer every tick,
+    and the unit would freeze.
 */
 BR_fnc_aiCheckRearm = {
     params ["_unit"];
@@ -830,13 +830,12 @@ BR_fnc_aiCheckStuck = {
 };
 
 /*
-    Some small buildings catch an AI that walked in to loot (slum and cargo houses, ruins, some u_/i_ houses on Altis:
-    3-6 per match stood there until the zone killed them). Nothing the engine offers gets it out again - doMove, direct
-    planning, moveTo, a forced replan, the building's exit, nearer building positions, open doors (probes tp384/tp387: 9
-    of 10 spots stayed shut). So an AI ordered on its way that did not move BR_var_aiTrapDistance for BR_var_aiTrapTime
-    inside a building is put on the nearest free spot outside of it (user 2026-11-23: put it out and learn), and the
-    building is closed to AI looting for the rest of the match (BR_var_aiTrap: no more AI goes in; players loot it as
-    before). True if the unit was put out.
+    Some small buildings catch an AI that walked in to loot (slum and cargo houses, ruins, some u_/i_ houses on Altis),
+    and nothing the engine offers gets it out again (doMove, direct planning, moveTo, a forced replan, the building's
+    exit, nearer building positions, open doors). So an AI ordered on its way that did not move BR_var_aiTrapDistance
+    for BR_var_aiTrapTime inside a building is put on the nearest free spot outside of it, and the building is closed to
+    AI looting for the rest of the match (BR_var_aiTrap: no more AI goes in; players can still loot it). True if the
+    unit was put out.
 */
 BR_fnc_aiCheckTrapped = {
     params ["_unit"];
@@ -872,8 +871,8 @@ BR_fnc_aiCheckTrapped = {
     _unit setVariable ["BR_var_aiTrapWait", 0];
 
     private _building = [_unit] call BR_fnc_aiEnclosingBuilding;
-    // not in a building: walls, sandbags or wire around it in the open (a sandbag square of a DayZ site held an AI for
-    // 6 minutes, its mate waiting beside it - PC test pd22): out to the nearest free spot towards its destination
+    // not in a building: walls, sandbags or wire around it in the open (e.g. a sandbag square of a DayZ site): out to
+    // the nearest free spot towards its destination
     private _exit = if (isNull _building) then {[_unit, _destination] call BR_fnc_aiOpenTrapExit} else {
         [_unit, _building] call BR_fnc_aiTrapExit
     };
@@ -963,7 +962,7 @@ BR_fnc_aiOpenTrapExit = {
             if (_exit isNotEqualTo []) exitWith {};
         } forEach [0, 30, -30, 60, -60, 90, -90, 135, -135, 180];
         if (_exit isNotEqualTo []) exitWith {};
-    // swimming in a harbour basin it cannot climb out of (Tanoa port, 10 minutes on one spot - pd66): land farther away
+    // swimming in a harbour basin it cannot climb out of (e.g. Tanoa port): land farther away
     } forEach ([BR_var_aiOpenTrapExit, BR_var_aiWaterTrapExit] select (surfaceIsWater getPosATL _unit));
 
     _exit
@@ -988,9 +987,8 @@ BR_fnc_aiUnstick = {
             if (_freePos isNotEqualTo [] && {!surfaceIsWater _freePos}) then {
                 _orderTo = _freePos;
             };
-            // the loot target it cannot get to is given up as a whole: the engine found no way to a building's holders
-            // (army tents behind the razor wire of a DayZ compound, a squad in the spruce thicket beside it - PC test
-            // pd25: 3 AI tried holder after holder of the same tents for 8 minutes)
+            // the loot target it cannot get to is given up as a whole: the engine finds no way to a building's holders
+            // (e.g. army tents behind the razor wire of a DayZ compound)
             if (!isNull (_unit getVariable ["BR_var_aiLootBuilding", objNull])) then {[_unit] call BR_fnc_aiEndLootRun};
             private _loose = _unit getVariable ["BR_var_aiLooseLoot", objNull];
             if (!isNull _loose) then {

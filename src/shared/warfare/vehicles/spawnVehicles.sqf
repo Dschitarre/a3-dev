@@ -4,8 +4,7 @@
 
 // ---- constants ----
 
-// type by world group (SC_var_currentWorldGroup) and kind, the same for every side (user decision: equal seats, speed
-// and armour); a type the game doesn't know falls back to the "2035" type of its kind. Base game vehicles: the Huron /
+// type by world group (SC_var_currentWorldGroup) and kind, the same for every side (equal seats, speed and armour); a type the game doesn't know falls back to the "2035" type of its kind. Base game vehicles: the Huron /
 // Taru (Helicopters DLC) could only be flown by owners of the DLC
 SC_var_spawnVehicleTypes = createHashMapFromArray [
     ["2035", createHashMapFromArray [
@@ -449,8 +448,8 @@ SC_fnc_setSpawnVehicleState = {
     };
 };
 
-// server: the state of a spawn vehicle and the label the mods show for it: only its name (user decision: no reason in
-// brackets why it is no respawn position)
+// server: the state of a spawn vehicle and the label the mods show for it: only its name (no reason in brackets why it
+// is no respawn position)
 SC_fnc_publishSpawnVehicleState = {
     params ["_vehicle", "_state"];
 

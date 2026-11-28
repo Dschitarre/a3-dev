@@ -48,7 +48,7 @@ SC_fnc_initClient = {
     KF_fnc_getGroupUnits = SC_fnc_getGroupUnits;
 
     // virtual arsenal whitelist override with the rank decorations of the item lists (SC\rankSystem\arsenal.sqf);
-    // before SC adds its own arsenalOpened handler (it used to be a postInit function)
+    // before SC adds its own arsenalOpened handler
     VA_var_listDecorator = SC_fnc_decorateArsenalList;
     VA_var_tabDecorator = SC_fnc_decorateArsenalTab;
     VA_var_lockReason = SC_fnc_getArsenalLockReason;

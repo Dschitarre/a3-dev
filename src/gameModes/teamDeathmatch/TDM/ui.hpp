@@ -117,7 +117,7 @@ class RscTitles {
                 h = UI_H(DM_HUD_ALIVE_H);
                 colorBackground[] = UI_COLOR_HUD_PANEL;
             };
-            // health fill in green (the only green bar, user decision); DM_fnc_guiLoop scales its width (full = 100 HP)
+            // health fill in green (the only green bar); DM_fnc_guiLoop scales its width (full = 100 HP)
             class hpBackground: UI_HudPanel {
                 idc = 1200;
                 x = DM_HUD_HEALTH_X;

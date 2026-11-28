@@ -1,11 +1,11 @@
 // Battle Royale healing items (server and client), as in PUBG: bandages heal 10 HP each up to 75 % health, first aid
 // kits heal up to 75 % at once, medikits to full health, energy drinks give a boost that heals slowly. All of them are
-// used by a left double-click in the inventory (no scroll menu actions: user), take a few seconds (moving, firing or a
-// hit cancels the use; no progress bar: user 2026-11-23) and are used up only when the use completes. The AI uses the
+// used by a left double-click in the inventory (no scroll menu actions), take a few seconds (moving, firing or a
+// hit cancels the use; no progress bar) and are used up only when the use completes. The AI uses the
 // same timed use. Arma has no bandages or drinks and a mission cannot add classes: existing magazines with fitting
 // pictures carry them (Old Man's bandage and antibiotics, CfgMagazines).
 // First aid kits and medikits are the vanilla items on the ground and on the AI, but a player carries them as magazines
-// as well (user 2026-11-23): the engine offers "Treat yourself" to anyone injured who carries a FirstAidKit item and
+// as well: the engine offers "Treat yourself" to anyone injured who carries a FirstAidKit item and
 // has no way to hide that action, a magazine it does not know as a healing item. The inventory shows the carried
 // magazine with the kit's name and picture (BR_fnc_relabelInventory).
 
@@ -15,11 +15,11 @@ BR_var_fakClass = "FirstAidKit";
 BR_var_medikitClass = "Medikit";
 BR_var_bandageHeal = 0.1; // 10 HP
 BR_var_bandageMaxHealth = 0.75; // bandages heal up to this health ...
-BR_var_fakMaxHealth = 0.75; // ... first aid kits as well, at once (user 2026-11-23); a medikit heals to full health
+BR_var_fakMaxHealth = 0.75; // ... first aid kits as well, at once; a medikit heals to full health
 BR_var_bandageTime = 3; // s of a use; moving or firing cancels it
 BR_var_drinkTime = 2.5;
-BR_var_fakTime = 6; // (user 2026-11-23)
-BR_var_medikitTime = 8; // (user 2026-11-23)
+BR_var_fakTime = 6;
+BR_var_medikitTime = 8;
 BR_var_drinkClasses = ["Antibiotic", "EnergyDrink"] select {isClass (configFile >> "CfgMagazines" >> _x)};
 
 // kit -> the magazine a player carries it as (base game, Old Man; mass 1 and 100 against 8 and 80 of the kits)
@@ -49,16 +49,16 @@ BR_var_inventoryOwnLists = [633, 638, 619]; // uniform, vest and backpack contai
 BR_var_inventoryRelabelLists = [632, 640, 633, 638, 619]; // the own ones and ground / other container
 
 /*
-    Armor level of vests and headgear in the inventory (user 2026-11-23): CUP's descriptions ("Armor Level III", "No
+    Armor level of vests and headgear in the inventory: CUP's descriptions ("Armor Level III", "No
     armor") do not match its configs - 377 CUP vests share one protection, 73 of them say "No armor". The level comes
     from the config: sum of armor * (1 - passThrough) of the item's HitpointsProtectionInfo (as BR_fnc_aiClothingProfile)
-    against these thresholds; level = number of thresholds reached. Vests (vanilla + CUP, 2026-11-23): 0 none (belts,
+    against these thresholds; level = number of thresholds reached. Vests (vanilla + CUP): 0 none (belts,
     bandoliers), 12-28.8 light (tactical vest, PASGT, JPC light), 33.6-44.8 Carrier Lite and most CUP rigs, 48-56 Carrier
     Rig, 6B45, IOTV, 72.8-92.8 Carrier Special / GL Rig. Headgear: 0 caps, 0.8-2 light helmets, 3-4 combat helmets,
     5 enhanced helmets, 6-10 face shields and Viper.
 */
 BR_var_armorLevelThresholds = createHashMapFromArray [[701, [5, 30, 45, 65]], [605, [0.5, 2.5, 4.5, 5.5]]]; // ItemInfo type
-// Uniforms, vests and backpacks show their space as well (user 2026-11-24): maximumLoad of the container (CfgVehicles;
+// Uniforms, vests and backpacks show their space as well: maximumLoad of the container (CfgVehicles;
 // uniforms and vests: their ItemInfo >> containerClass). One suffix per item: " [Armor 2 | Space 80]".
 BR_var_armorLabel = "Armor %1";
 BR_var_spaceLabel = "Space %1";
@@ -441,7 +441,7 @@ BR_fnc_convertKits = {
 };
 
 /*
-    "Treat yourself" (HealSoldierSelf) is blocked: kits are used by double-click (user 2026-11-23). A player carries
+    "Treat yourself" (HealSoldierSelf) is blocked: kits are used by double-click. A player carries
     them as magazines (BR_fnc_convertKits), so the engine normally does not even offer the action; this catches the
     moment before a conversion. inGameUISetEventHandler is one handler per client: AIS (BR\downed.sqf, team modes)
     sets its own when its init has run, so ours is set again after that and calls the AIS handler itself.
@@ -478,8 +478,8 @@ BR_fnc_onUiAction = {
 };
 
 /*
-    A short message the player sees for sure: in the inventory (the double-click happens there; hints went unnoticed:
-    user 2026-11-23) a text at the top of it, else a notification.
+    A short message the player sees for sure: in the inventory (the double-click happens there; a hint goes unnoticed)
+    a text at the top of it, else a notification.
 */
 BR_fnc_itemMessage = {
     params ["_text"];
@@ -582,8 +582,7 @@ BR_fnc_hookInventoryItems = {
 
     // carrier rows show the kit, wearables their armor and space; every frame, as the engine rebuilds its lists on
     // every change - in Draw3D, after the engine's update of the display: it refreshes the player's own container
-    // lists and the slot tooltips every frame after EachFrame, so there the names only showed on the ground and in
-    // other containers, not on the player (user 2026-11-25)
+    // lists and the slot tooltips every frame after EachFrame
     addMissionEventHandler ["Draw3D", {call BR_fnc_relabelInventory}];
 
     {
@@ -836,11 +835,10 @@ BR_fnc_relabelInventory = {
 
 /*
     The inventory key in a vehicle. Every BR player is a renegade (BR_fnc_makeRenegade: free for all), and the engine
-    opens no vehicle inventory for a renegade ("Action::Process - No target [action: Gear]"; the vehicle reported side
-    ENEMY, the same CUP vehicle opened in the editor - user 2026-11-24). So the key lifts the rating to 0, opens the
+    opens no vehicle inventory for a renegade ("Action::Process - No target [action: Gear]"). So the key lifts the rating to 0, opens the
     inventory by "Gear" on the vehicle and makes the player a renegade again once it is open. The key itself is
-    consumed: the engine kept its own failed Gear action pending and opened the inventory once more when the player
-    got out (user 2026-11-25; client RPT: every opening was "by action").
+    consumed: else the engine keeps its own failed Gear action pending and opens the inventory once more when the
+    player gets out.
 */
 BR_fnc_initVehicleGear = {
     if (!isNil "BR_var_vehicleGearKey") exitWith {};

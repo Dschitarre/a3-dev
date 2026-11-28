@@ -592,7 +592,7 @@ SC_fnc_initSpawnedVehicle = {
 
     if !hasInterface exitWith {};
 
-    // locking on the key J (SC_fnc_keyVehicleLock, SC\vehicles\handling.sqf) instead of scroll actions (user decision)
+    // locking on the key J (SC_fnc_keyVehicleLock, SC\vehicles\handling.sqf) instead of scroll actions
     _veh setVariable ["SC_var_lockable", _isLockable];
 };
 

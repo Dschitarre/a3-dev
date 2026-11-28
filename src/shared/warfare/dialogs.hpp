@@ -105,7 +105,7 @@ class SC_HudPanel: SC_HudText {
     colorBackground[] = UI_COLOR_HUD_PANEL;
 };
 
-// player stats and spawn vehicles (user decisions 2026-11-13: the general UI style like the TDM / GunGame health bar):
+// player stats and spawn vehicles (the general UI style like the TDM / GunGame health bar):
 // every box on the player's HUD panel color (SC_HudPanel), bars filled grey (stamina turning red when low), rank and
 // perks grey like the fills, only the player's health green, white text, no colored backgrounds; the sides are told
 // apart by their NATO symbols
@@ -132,7 +132,7 @@ class SC_HudHealth: SC_HudText {
     colorBackground[] = UI_COLOR_HUD_TEXT;
 };
 
-// sector letters of the sector overview: the original size (user decision), larger than the other HUD texts
+// sector letters of the sector overview: the original size, larger than the other HUD texts
 class SC_HudSectorLetter: SC_HudText {
     sizeEx = 0.03915;
 };
@@ -270,7 +270,7 @@ class SC_ArsenalHeader: UI_TextSmall {
 
 // ---- settings (F4) ----
 
-// Settings in sections (user decision): a row of tabs at the top of the body, below it the rows of the chosen section
+// Settings in sections: a row of tabs at the top of the body, below it the rows of the chosen section
 // (SC_fnc_settingsShowSection). All sections use the same rows, from SC_SETTINGS_TOP on; the earplugs section is created
 // by the earplugs mod (E_fnc_embedSettings). The width set here fits the labels at the usual interface sizes;
 // SC_fnc_fitSettingsDialog narrows or widens the dialog to its longest row and centres it.

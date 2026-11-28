@@ -5,12 +5,10 @@
 // The phases follow from the play area radius (BR_fnc_zonePhases), so every area size gets a fitting number of phases.
 BR_var_zoneRadiusShares = [[1000, 0.55], [300, 0.5], [0, 0.45]];   // [radius above, next radius share]
 BR_var_zoneLastRadius = 60;             // a zone that would get smaller than this is the last one: it closes completely
-// The pace rises with the match (user 2026-11-23, like PUBG): every zone shrinks at one steady edge speed, from the first
-// shrink to the last rising from the first to the second value, and the waits get shorter. Before, the first zones of
-// a whole map ran at 13 m/s - faster than anyone on foot: most zone deaths were units that had landed 2-6 km outside of
-// the first circle (duo/squad tests br395/br399). At Normal: whole Altis ~50 min, Chernarus ~37 min, Stratis ~20 min.
-BR_var_zoneEdgeSpeedRange = [7, 10];    // m/s of the far edge (with the center's travel): first shrink ... last (user:
-                                        // the first one at 5 m/s was too slow)
+// The pace rises with the match: every zone shrinks at one steady edge speed, from the first shrink to the last rising
+// from the first to the second value, and the waits get shorter. At Normal: whole Altis ~50 min, Chernarus ~37 min,
+// Stratis ~20 min.
+BR_var_zoneEdgeSpeedRange = [7, 10];    // m/s of the far edge (with the center's travel): first shrink ... last
 BR_var_zoneWaitRange = [120, 45];       // s before a shrink: first shrink ... last
 // damage per second outside (share of the health) by the phase's place in the match, not by the radius: the first
 // phase min, the last max, in between rising with (phase share) ^ exponent - a small area starts as gently as a big one
@@ -59,7 +57,7 @@ BR_fnc_zonePhases = {
             (_from - _to) / _edgeSpeed, _to, _edgeSpeed];
     } forEach _radii;
 
-    // zone 1 is the whole play area (all land of the map, user 2026-11-23): it ends when everyone has landed
+    // zone 1 is the whole play area (all land of the map): it ends when everyone has landed
     // (BR_fnc_zoneLoop: share of the flight + landing time), only then the first smaller circle is marked - nobody
     // (AI drop planning included) knows it during the flight
     _phases = [[0, 0, _radius, 1]] + _phases;
@@ -293,8 +291,8 @@ BR_fnc_zoneEdgeTime = {
 
 // [center, radius] of the circle at _time (serverTime)
 /*
-    Clients: the next safe zone (white circle, its 3D wall, the distance line) only from the first shrink on - before,
-    the whole map is the zone and a circle in it only told where to go (user 2026-11-24). BR_var_zoneRevealed (server,
+    Clients: the next safe zone (white circle, its 3D wall, the distance line) only from the first shrink on - before
+    it the whole map is the zone. BR_var_zoneRevealed (server,
     BR_fnc_zoneLoop) is public, so a JIP client gets it too.
 */
 BR_fnc_nextZoneShown = {

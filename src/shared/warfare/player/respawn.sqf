@@ -90,7 +90,7 @@ SC_fnc_onRespawn = {
     };
 };
 
-// The SPECTATE button (and its panel) appear in the middle of the fade in to the respawn map (user 2026-11-26): after
+// The SPECTATE button (and its panel) appear in the middle of the fade in to the respawn map: after
 // the kill cam the killfeed fades in (KF_var_menuFadeInHalfAt); without it the vanilla respawn menu blacks out and in
 // (a3\functions_f\Respawn: respawn delay > 5 s: black out after 3 s, black in at 4 s for 1 s; > 2 s: after 0.5 s,
 // black in at 1.5 s), so the middle is 4.5 s / 2 s after the menu opened. The vanilla menu does that only while the
@@ -332,9 +332,9 @@ SC_fnc_parachuteJump = {
 
 /*
     Client, for the whole mission. Death, kill cam, unconscious view, spectator and respawn map black the screen out,
-    mute the sound and hide HUD parts in a chain of fades and waits; when the game window lost the focus meanwhile
-    (alt-tab), a step of that chain could be missed and the player was left with a black screen, no sound or a broken
-    HUD after the respawn (user). So whenever the player has been plainly playing (alive, conscious, his own view, no kill
+    mute the sound and hide HUD parts in a chain of fades and waits; when the game window loses the focus meanwhile
+    (alt-tab), a step of that chain can be missed and leave a black screen, no sound or a broken HUD after the
+    respawn. So whenever the player has been plainly playing (alive, conscious, his own view, no kill
     cam, spectator or round end) or plainly at the respawn map for SC_var_recoveryDelay seconds in a row, everything
     that should be off is turned off once: the black layers, the spectator's night vision, a wrong volume, a lost HUD.
 */

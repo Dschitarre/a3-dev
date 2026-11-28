@@ -12,8 +12,7 @@ TDI_var_losCacheTime = 0.2;           // seconds a line-of-sight result is reuse
 TDI_var_iconSizeFactor = 2;           // unit and vehicle icons: size = this / distance ^ TDI_var_iconDistanceExponent * zoom
 TDI_var_minUnitIconSize = 0.08;       // smaller unit icons (far away) are not drawn
 
-// how fast the icons shrink with the distance (0.5 = 1 / sqrt (distance), the original; smaller = slower; sizes
-// tuned in game 2026-11-13); missions may set it before the mod loads, the debug console at any time
+// how fast the icons shrink with the distance (0.5 = 1 / sqrt (distance); smaller = slower); missions may set it before the mod loads, the debug console at any time
 if (isNil "TDI_var_iconDistanceExponent") then {TDI_var_iconDistanceExponent = 0.5;};
 
 // the natural icon size at _distance (before zoom and floors)

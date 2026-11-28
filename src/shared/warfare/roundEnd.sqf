@@ -13,7 +13,7 @@ SC_var_roundEndCameraLapTime = 120;
 // SC_var_roundStats: player UID / "ai:" + AI name -> [name, side, kills, deaths, captures, revives, xp]
 SC_var_roundStatIndices = createHashMapFromArray [["kills", 2], ["deaths", 3], ["captures", 4], ["revives", 5], ["xp", 6]];
 
-// AI gets no real XP; for the leaderboard (user: the AI belongs in it) it is counted as a player would get it at least:
+// AI gets no real XP; for the leaderboard it is counted as a player would get it at least:
 // a kill and a capture without vehicle, distance or perk bonus
 SC_var_aiRoundStatKillXp = 100;
 SC_var_aiRoundStatCaptureXp = 200;

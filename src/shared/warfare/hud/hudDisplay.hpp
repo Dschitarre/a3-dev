@@ -50,7 +50,7 @@ class sectorControlDisplay {
 
     class ControlsBackground {
         // ---- backgrounds and bars (boxes that carry their own text first) ----
-        // rank and perks grey like the fill of the bars (user decision 2026-11-13)
+        // rank and perks grey like the fill of the bars
         SC_HUD_TEXT(rankText, SC_HudBarFill, 1005, "Rank: 1")
         SC_HUD_TEXT(bluforScoreText, SC_HudPanel, 1002, "0")
         SC_HUD_TEXT(opforScoreText, SC_HudPanel, 1003, "0")

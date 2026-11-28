@@ -96,7 +96,7 @@ GG_fnc_refreshLeaderBoardClient = {
 
     (call UI_fnc_gridCell) params ["_cellW", "_cellH"];
 
-    // every row on a block as wide as its own text (user decision; no longer all as wide as the widest)
+    // every row on a block as wide as its own text
     private _bottom = [
         GG_var_leaderBoardLayer,
         _rows,

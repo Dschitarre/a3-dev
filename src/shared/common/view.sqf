@@ -7,8 +7,8 @@ CMN_var_centerTextLayer = 1011;     // cut layer of the centered texts (loading,
 CMN_var_fontNormal = "RobotoCondensed";         // GUI_FONT_NORMAL / GUI_FONT_BOLD of ui\ui.hpp, for structured text
 CMN_var_fontBold = "RobotoCondensedBold";
 
-// a screen text (ui\ui.sqf) in the middle of the screen, stays until CMN_fnc_hideCenterText. On a block (user rule: also
-// the texts on a black screen, like the loading text); _boxed false only for a text that must stand alone
+// a screen text (ui\ui.sqf) in the middle of the screen, stays until CMN_fnc_hideCenterText. On a block (also the texts
+// on a black screen, like the loading text); _boxed false only for a text that must stand alone
 CMN_fnc_showCenterText = {
     params ["_text", ["_boxed", true]];
 

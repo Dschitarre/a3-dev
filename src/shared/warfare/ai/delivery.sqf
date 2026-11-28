@@ -111,7 +111,7 @@ SC_fnc_aiDeliveryAnchors = {
 
 // The parking sectors of one spawn vehicle: those of its side without the sectors its other spawn vehicles were sent
 // to (SC_var_aiDeliverySector: where one is parked or being taken), so trucks and helicopters spread over the front
-// instead of all waiting at the same sectors (user 2026-11-27)
+// instead of all waiting at the same sectors
 SC_fnc_aiVehicleAnchors = {
     params ["_vehicle", "_side"];
 
@@ -309,7 +309,7 @@ SC_fnc_aiFindParkingSpot = {
     } forEach _anchors;
 
     // the side's other spawn vehicles (trucks and helicopters): where they stand, or where they are being taken - a spot
-    // close to one of them is taken only if there is no other (user 2026-11-26: not parked next to each other)
+    // close to one of them is taken only if there is no other
     private _spacing = 150 max (400 min (0.5 * SC_var_aiSectorSpacing));
     private _occupied = [];
 
@@ -831,9 +831,9 @@ SC_fnc_aiDoDelivery = {
 };
 
 // ---- attacking enemy spawn vehicles ----
-// AI with a launcher destroy enemy spawn vehicles (trucks, helicopters) they see, also empty ones (user 2026-11-26).
+// AI with a launcher destroy enemy spawn vehicles (trucks, helicopters) they see, also empty ones.
 // The AI does not target empty vehicles by itself (they are no enemies): the nearest AI on foot with a loaded launcher
-// that sees one gets it as an order (doTarget + doFire: tested, an RPG destroys an empty truck in ~15 s) until it is
+// that sees one gets it as an order (doTarget + doFire: an RPG destroys an empty truck in ~15 s) until it is
 // destroyed, out of reach or SC_var_aiHuntTimeout has passed, then it returns to its squad. Spawn vehicles in a base and
 // the AI of players' groups are left alone. One hunter per vehicle (server).
 

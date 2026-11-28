@@ -13,8 +13,8 @@ MM_var_hoverRadius = 0.02;           // screen distance for "names only on hover
 MM_var_font = "RobotoCondensed";     // GUI_FONT_NORMAL
 MM_var_emptyIcon = "#(argb,8,8,3)color(0,0,0,0)";   // invisible icon for texts drawn after all icons
 
-// Icons and texts have a constant size at every map zoom (user decision): the icons their fixed size in pixels, the
-// texts MM_var_textSizeFactor times their base size (1: the full size of the former zoom-dependent texts). The engine
+// Icons and texts have a constant size at every map zoom: the icons their fixed size in pixels, the
+// texts MM_var_textSizeFactor times their base size. The engine
 // enlarges drawIcon texts when zoomed in, so below the map scale MM_var_textZoomReference the text size is multiplied by
 // ((scale max MM_var_textZoomMinScale) / MM_var_textZoomReference) ^ MM_var_textZoomExponent; the label grouping
 // assumes the resulting constant on-screen size (the size at the reference scale). All these can be set by missions
@@ -30,7 +30,7 @@ if (isNil "MM_var_vehicleIconSize") then {
     MM_var_vehicleIconSize = 22;       // base size of every vehicle icon (before its area scale and MM_var_iconSizeFactor)
 };
 if (isNil "MM_var_parachuteIconSize") then {
-    MM_var_parachuteIconSize = 13;     // parachutes (before MM_var_iconSizeFactor; was 16, user: a bit smaller)
+    MM_var_parachuteIconSize = 13;     // parachutes (before MM_var_iconSizeFactor)
 };
 if (isNil "MM_var_textZoomReference") then {
     MM_var_textZoomReference = 0.1;      // map scale from which on the engine leaves the text size as it is
@@ -40,7 +40,7 @@ if (isNil "MM_var_textZoomExponent") then {
                                          // 0.1 and 0.05 (twice as large at 0.05) and keeps it constant outside
 };
 if (isNil "MM_var_textZoomMinScale") then {
-    MM_var_textZoomMinScale = 0.05;      // smallest scale the compensation follows (the old curve stopped there)
+    MM_var_textZoomMinScale = 0.05;      // smallest scale the compensation follows
 };
 
 // overlapping labels (names) group on the map, not on the GPS: only the most relevant one is drawn, with the number of
@@ -103,7 +103,7 @@ MM_fnc_refreshColors = {
 
 call MM_fnc_refreshColors;
 
-// own unit (yellow) and group members (white), as before the UI rework
+// own unit (yellow) and group members (white)
 MM_var_colorYellow = [1, 0.83, 0, 1];
 MM_var_colorWhite = [1, 1, 1, 1];
 

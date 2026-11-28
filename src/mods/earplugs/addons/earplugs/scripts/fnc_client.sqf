@@ -331,7 +331,7 @@ E_fnc_showIcon = {
 };
 
 // A mission moved what the icon sits next to (its E_var_iconPosition hook, e.g. the SC HUD rows): the shown icon
-// follows at once instead of with the next update (user: it lagged behind)
+// follows at once instead of with the next update
 E_fnc_refreshIconPosition = {
     private _icon = uiNamespace getVariable ["E_var_icon", controlNull];
 
@@ -496,7 +496,7 @@ E_fnc_createSettingsRows = {
 
     private _hint = [_display, "RscText", -1, _grid, [0, _height - 1, _width, 1], E_var_dialogHint] call E_fnc_createDialogControl;
     _hint ctrlSetFontHeight (E_var_dialogHintSize * _cellH);
-    _hint ctrlSetTextColor [1, 1, 1, 1];   // the dialog's text white (a dimmed hint looked pale, user)
+    _hint ctrlSetTextColor [1, 1, 1, 1];   // the dialog's text white
 
     _controls append [_heading, _hint];
 

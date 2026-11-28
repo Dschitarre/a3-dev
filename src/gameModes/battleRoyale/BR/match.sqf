@@ -43,7 +43,7 @@ BR_fnc_notifyClient = {
 // ---- match (server) ----
 
 BR_fnc_matchLoop = {
-    // the loot site markers from the mission start on: players see them in the warmup already (user 2026-11-24)
+    // the loot site markers from the mission start on: players see them in the warmup already
     [] spawn {
         call BR_fnc_findLootTents;
         call BR_fnc_markLootSites;

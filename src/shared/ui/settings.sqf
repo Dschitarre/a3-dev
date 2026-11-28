@@ -5,9 +5,9 @@ if (!isNil "UI_var_settingsCompiled") exitWith {};
 UI_var_settingsCompiled = true;
 UI_var_heldWinKeys = [];
 
-// View distance (user decision 2026-11-20, all modes): the player sets the OBJECT view distance (500..10000 m; ground
+// View distance (all modes): the player sets the OBJECT view distance (500..10000 m; ground
 // default 2000, in flight 3500); the terrain view distance follows from it: equal at 500 m, rising to 1.25 x the
-// object distance at 800 m and above. Shadows: setObjectViewDistance [objects, 0] as the user specified.
+// object distance at 800 m and above. Shadows: setObjectViewDistance [objects, 0].
 UI_var_viewRange = [500, 10000];
 UI_fnc_viewDistanceStep = {
     params ["_distance"];

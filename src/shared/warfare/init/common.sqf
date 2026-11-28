@@ -84,7 +84,7 @@ SC_fnc_localUnitsLoop = {
 // ---- under fire (respawning at a group mate, players and AI) ----
 
 SC_var_underFireTime = 10;        // s after a hit or a bullet passing close by: the unit counts as under fire
-SC_var_spawnSafeRadius = 10;      // m: no conscious enemy this close to a group mate one respawns at (user decision)
+SC_var_spawnSafeRadius = 10;      // m: no conscious enemy this close to a group mate one respawns at
 
 // on the unit's machine: hit or suppressed (bullets passing close by); public, at most every 2 s
 SC_fnc_markUnderFire = {
@@ -101,7 +101,7 @@ SC_fnc_isUnderFire = {
     (serverTime - (_unit getVariable ["SC_var_underFireAt", -1e6])) < SC_var_underFireTime
 };
 
-// whether one may respawn at the unit (user decision): it isn't under fire and no conscious enemy is within
+// whether one may respawn at the unit: it isn't under fire and no conscious enemy is within
 // SC_var_spawnSafeRadius, on foot or in a vehicle
 SC_fnc_isSafeSpawnTarget = {
     params ["_unit"];

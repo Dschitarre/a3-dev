@@ -26,8 +26,8 @@ SC_fnc_checkAirDrops = {
 SC_var_airdropFallTimeout = 300;
 SC_var_airdropLandTimeout = 15;
 
-// the big cargo parachute on large maps, the small round one on the smaller maps (user decision 2026-11-13: the big one
-// is out of proportion there); SC_var_mapSize from SC\init\server.sqf
+// the big cargo parachute on large maps, the small round one on the smaller maps (the big one is out of proportion
+// there); SC_var_mapSize from SC\init\server.sqf
 SC_var_airdropSmallParachuteMapSizes = ["Small", "Medium"];
 SC_var_airdropParachuteBig = "B_Parachute_02_F";
 SC_var_airdropParachuteSmall = "NonSteerable_Parachute_F";
@@ -88,8 +88,7 @@ SC_fnc_findAirdropPos = {
 SC_fnc_airDrop = {
     params ["_dropMarker"];
 
-    // the position first: the box exists only once it is known (it used to wait at [0, 0, 0], the south-west map corner,
-    // while the search ran, and stayed there when nothing fitted)
+    // the position first: the box is created only once it is known (not at [0, 0, 0] while the search runs)
     private _safePos = [_dropMarker] call SC_fnc_findAirdropPos;
 
     if (_safePos isEqualTo []) exitWith {

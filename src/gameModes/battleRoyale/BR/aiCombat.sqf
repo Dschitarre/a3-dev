@@ -197,9 +197,8 @@ BR_fnc_aiEngage = {
     private _rounds = 0;
     {if ((toLowerANSI (_x select 0)) in _compatible) then {_rounds = _rounds + (_x select 1)}} forEach _mags;
     private _needy = [_unit] call BR_fnc_aiNeedsGear;
-    // Only an armed enemy, or the one who just shot at the unit, is a danger worth avoiding. Withdrawing from every
-    // visible (often unarmed, looting) enemy made AI on open ground keep moving away from each other until they got
-    // stuck in places they could not leave (user 2026-11-15).
+    // Only an armed enemy, or the one who just shot at the unit, is a danger worth avoiding: withdrawing from every
+    // visible (often unarmed, looting) enemy would keep AI on open ground moving away from each other.
     private _threat = _unit getVariable ["BR_var_aiThreat", objNull];
     private _dangerous = _visible select {[_x] call BR_fnc_aiArmed || {_underFire && {_x isEqualTo _threat}}};
     private _enemyDangerous = _enemy in _dangerous;

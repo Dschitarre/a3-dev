@@ -7,7 +7,7 @@
         accent (title bars, selection, progress)  GUI_BCG_RGB_*       orange with the default "Arma 3" preset, green with "Apex", ...
         title text                                GUI_TITLETEXT_RGB_*
         HUD panels                                IGUI_BCG_RGB_*, warning/error IGUI_WARNING/ERROR_RGB_*
-    except the HUD text (pure white, as before the UI rework) and the side colors (a fixed palette shared with the
+    except the HUD text (pure white) and the side colors (a fixed palette shared with the
     mods, UI_COLOR_BLUFOR ... below, ui.sqf).
     Positions and sizes use the BI GUI grid (40 x 25 cells, GUI_GRID_*), so dialogs scale with the interface size option.
     Scripted UI (structured text, drawIcon, ctrlSetBackgroundColor) gets the same colors from ui\ui.sqf.
@@ -80,16 +80,16 @@ import RscFrame;
 #define UI_COLOR_ACCENT_DIM     GUI_BCG_COLOR_SELECTED
 #define UI_COLOR_TITLE_TEXT     GUI_TITLETEXT_COLOR
 #define UI_COLOR_PANEL          {0, 0, 0, 0.7}         // dialog body (vanilla GUI_BCG_MENU)
-#define UI_COLOR_FIELD          {0, 0, 0, 0.4}         // lists, edit fields, inner panels on the body (vanilla 0.3 looked too
-                                                       // light, user decision); never stack a third layer
+#define UI_COLOR_FIELD          {0, 0, 0, 0.4}         // lists, edit fields, inner panels on the body; never stack a
+                                                       // third layer
 #define UI_COLOR_TEXT           {1, 1, 1, 1}
 #define UI_COLOR_TEXT_DIM       {1, 1, 1, 0.5}
 #define UI_COLOR_DISABLED       {1, 1, 1, 0.25}
 #define UI_COLOR_HUD_PANEL      IGUI_BCG_COLOR
-#define UI_COLOR_HUD_TEXT       {1, 1, 1, 1}           // pure white as before the UI rework (not the transparent IGUI_TEXT)
+#define UI_COLOR_HUD_TEXT       {1, 1, 1, 1}           // pure white (not the transparent IGUI_TEXT)
 #define UI_COLOR_WARNING        IGUI_WARNING_COLOR
 #define UI_COLOR_ERROR          IGUI_ERROR_COLOR
-// HUD bars with a fill level (user decision): grey on the HUD panel, only the player's health green (same as ui.sqf
+// HUD bars with a fill level: grey on the HUD panel, only the player's health green (same as ui.sqf
 // "barFill" / "health")
 #define UI_COLOR_BAR_FILL       {0.3, 0.3, 0.3, 0.55}
 #define UI_COLOR_HEALTH         {0, 0.8, 0, 0.55}

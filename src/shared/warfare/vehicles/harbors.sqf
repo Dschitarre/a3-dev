@@ -12,7 +12,7 @@
 
 // terrain object types of the piers and quays and parts of their model names (lower case): Altis/Malden pier_f,
 // Chernarus nav_pier_*, Tanoa pier*_01/02/03 and the quay walls quayconcrete_01_* most of its harbours are built of
-// (probes\harborModels.sqf; without "quay" Harcourt and others had no harbour)
+// (without "quay" Harcourt and others would have no harbour)
 SC_var_harborTypes = ["HOUSE", "QUAY"];
 SC_var_harborModelWords = ["pier", "quay"];
 SC_var_harborLink = 120;          // m between two objects of the same harbour
@@ -193,7 +193,7 @@ SC_fnc_harborShopPos = {
 // whether a helicopter can stand at _pos: dry land, flat at the point and SC_var_harborVehicleClear m around it, and no
 // terrain object whose ground plan (bounding box) reaches within SC_var_harborVehicleClear m - except the walkable
 // quays and piers (Tanoa's quay walls are large objects that cover the whole quay; isFlatEmpty counts them as obstacles).
-// findEmptyPosition is no help here: it put helicopters into lamps and piers (destroyed, probes\harborVehicleSpots.sqf).
+// findEmptyPosition is no help here: it puts helicopters into lamps and piers.
 SC_fnc_harborSpotFree = {
     params ["_pos"];
 

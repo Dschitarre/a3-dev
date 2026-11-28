@@ -139,7 +139,7 @@ SC_fnc_groupSpawn = {
 // Every side is split into squads of SC_var_squadSize automatically: its units (its players and the AI it is filled
 // with, SC_fnc_getWantedAiAmounts) without the members of the groups players customized (SC_fnc_isGroupCustom: they
 // stay as they are) are partitioned into squads of 4, the rest into squads of 3 (n mod 4 = 3: one squad of 3; = 2: two
-// of 3; = 1: three of 3 - never a squad of 5, user decision 2026-11-14; 5 units: 3 + 2; 1 - 4 units: one squad). The
+// of 3; = 1: three of 3 - never a squad of 5; 5 units: 3 + 2; 1 - 4 units: one squad). The
 // automatic groups get these sizes (groups
 // with players first, then the ones with the most members), so units only move when the rule is broken: a group fills
 // up to its size with free AI, surplus AI leave and fill other groups, a group that gets no size dissolves. Sizes kept

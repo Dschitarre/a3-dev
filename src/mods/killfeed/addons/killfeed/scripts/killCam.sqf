@@ -852,7 +852,7 @@ KF_fnc_killCamWait = {
     };
 };
 
-// Scheduled: out of the kill cam through black (user: never a cut to the own body), the camera off in the black, then
+// Scheduled: out of the kill cam through black (never a cut to the own body), the camera off in the black, then
 // KF_var_killCamOutro: "black" hands the black to the death transition of the game mode, "body" fades in at the own body
 // and through black again to the respawn menu; going unconscious (AIS) fades in to the unconscious view. Then the held
 // respawn menu opens and the game mode goes on.
@@ -1086,7 +1086,7 @@ KF_fnc_killCamRelocate = {
 
 // ---- recovery (alt-tab robustness) ----
 // The kill cam and the death transition black the screen out on the killfeed's layers in a chain of fades and waits; a
-// step missed while the game window had no focus (alt-tab) could leave the screen black after the respawn (user). Once
+// step missed while the game window has no focus (alt-tab) could leave the screen black after the respawn. Once
 // the player has been back in his own view for KF_var_recoveryDelay seconds without a kill cam, these layers are
 // cleared once.
 KF_var_recoveryDelay = 3;

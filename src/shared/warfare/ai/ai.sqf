@@ -107,10 +107,9 @@ SC_fnc_getAiNameArr = {
     [(_initials + " " + _aiLastName), _initials, _aiLastName]
 };
 
-// The name set (CfgWorlds >> GenericNames) of base-game AI on a map whose people have their own names (user 2026-11-25:
-// CUP names on the CUP maps): CUP's Chernarus factions (civilians, CDF, ChDKZ, NAPA) all use CUP_Names_CzechMen. CUP
-// units keep their faction's own CUP names (Russians CUP_Names_RussianMen - SC on Chernarus, probe sc01chern), other
-// maps the unit's own set
+// The name set (CfgWorlds >> GenericNames) of base-game AI on a map whose people have their own names (CUP names on the
+// CUP maps): CUP's Chernarus factions (civilians, CDF, ChDKZ, NAPA) all use CUP_Names_CzechMen. CUP units keep their
+// faction's own CUP names (Russians CUP_Names_RussianMen), other maps the unit's own set
 SC_var_worldNameSets = createHashMapFromArray [
     ["cup_chernarus_a3", "CUP_Names_CzechMen"], ["chernarus", "CUP_Names_CzechMen"], ["chernarus_summer", "CUP_Names_CzechMen"],
     ["chernarus_winter", "CUP_Names_CzechMen"], ["utes", "CUP_Names_CzechMen"], ["takistan", "CUP_Names_TakistaniMen"],

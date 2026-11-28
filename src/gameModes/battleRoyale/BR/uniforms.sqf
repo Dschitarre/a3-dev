@@ -1,5 +1,5 @@
 // Uniforms from any faction: right-click and drag onto the uniform slot; left double-click keeps vanilla inspection.
-// A swap never moves pocket contents (user 2026-11-23): the old uniform drops to the ground with its own contents as
+// A swap never moves pocket contents: the old uniform drops to the ground with its own contents as
 // loot, the new one is worn with exactly the contents it had. The server arbitrates the source (locks, take, restore);
 // the unit's own uniform is changed only where the unit is local (player: its client, AI: the server), in one frame.
 
@@ -123,7 +123,7 @@ BR_fnc_uniformResult = {
     BR_var_uniformPending = "";
     if (!_success) then {systemChat "Uniform change failed. Reopen the inventory and try again."};
 
-    // the inventory again (user 2026-11-24), on the container the uniform came from if it is still in reach (the old
+    // the inventory again, on the container the uniform came from if it is still in reach (the old
     // uniform now lies at the feet: the ground shows in the inventory anyway)
     if (alive player && {isNull findDisplay BR_var_inventoryDisplay}) then {
         private _source = missionNamespace getVariable ["BR_var_uniformReopenSource", objNull];
@@ -472,9 +472,8 @@ BR_fnc_hookInventory = {
         if (!isNull _list) then {
 
             // Left double-click retains vanilla inspection of a uniform's pockets, including corpses.
-            // A single right-click wears it (user 2026-11-23): the engine selects the clicked row only after this event,
-            // so the row is read a frame later - reading it at once took the row selected before, and only a second
-            // right-click worked.
+            // A single right-click wears it: the engine selects the clicked row only after this event, so the row is
+            // read a frame later (at once it would still be the row selected before).
             _list ctrlAddEventHandler ["MouseButtonUp", {
                 params ["_list", "_button"];
 

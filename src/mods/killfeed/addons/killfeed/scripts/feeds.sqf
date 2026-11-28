@@ -20,11 +20,10 @@ KF_fnc_sendKillFeed = {
         _killerTags pushBack str (count _assistants - 1);
     };
 
-    // a self-kill (zone, fall, own grenade) shows the dead one only, on the right in either order (user 2026-11-23),
+    // a self-kill (zone, fall, own grenade) shows the dead one only, on the right in either order,
     // not the same name on both sides
     private _selfKill = isNull _killer || {_killer isEqualTo _unit};
-    // the zone and tombstone icons fill their square (weapon pictures have a margin): a wider gap to the name, one
-    // plain space looked like none (user 2026-11-25)
+    // the zone and tombstone icons fill their square (weapon pictures have a margin): a wider gap to the name
     private _line = format [
         if (_selfKill) then {"%2 %4 %1"} else {["%3 %2 %1", "%1 %2 %3"] select KF_var_killFeedInversed},
         [_unit] call KF_fnc_unitTag,
@@ -140,7 +139,7 @@ KF_fnc_sendDeathFeed = {
     };
 
     // the report in short blocks: who, with what from where, where hit, own hits on the killer, assists, game mode info;
-    // the header as before the rework (user): "You were killed by [rank] name"
+    // the header: "You were killed by [rank] name"
     private _header = format [
         "%1 by %2%3%4",
         ["<t color='kf:you'>You</t> were killed", format ["<t color='kf:you'>Your</t> %1 was destroyed", [_unit] call KF_fnc_unitTag]] select _isUav,

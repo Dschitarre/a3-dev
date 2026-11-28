@@ -16,10 +16,10 @@ UI_var_colorSources = createHashMapFromArray [
     ["accent", ["GUI_BCG_RGB", [0.13, 0.54, 0.21, 0.8]]],
     ["titleText", ["GUI_TITLETEXT_RGB", [1, 1, 1, 0.6]]],
     ["hudPanel", ["IGUI_BCG_RGB", [0, 1, 1, 0.8]]],
-    ["hudText", ["", [1, 1, 1, 1]]],               // pure white as before the UI rework (not the transparent IGUI_TEXT)
+    ["hudText", ["", [1, 1, 1, 1]]],               // pure white (not the transparent IGUI_TEXT)
     ["warning", ["IGUI_WARNING_RGB", [0.8, 0.5, 0, 0.8]]],
     ["error", ["IGUI_ERROR_RGB", [0.8, 0, 0, 1]]],
-    // fixed colors ("" = no profile variable), as before the UI rework: sides (map / icon palette of mapmarker) and
+    // fixed colors ("" = no profile variable): sides (map / icon palette of mapmarker) and
     // the player's own highlight (yellow); their text variants are UI_var_fixedHtml (the killfeed / HUD text palette)
     ["west", ["", [0, 0.5, 1, 1]]],
     ["east", ["", [1, 0, 0, 1]]],

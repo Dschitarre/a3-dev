@@ -42,11 +42,11 @@ SC_fnc_hudSpawnVehicleRows = {
 
 /*
     Sizes and places the rows (from SC_fnc_hudLayoutPlayerStats, same units: shares of the safe zone, x from the left,
-    top from the bottom edge, right aligned): at the bottom of the panel's left column (user decision 2026-11-13), the
+    top from the bottom edge, right aligned): at the bottom of the panel's left column, the
     first spawn vehicle at the top, as wide and high as the bars of the panel (_barWidth, _height, gap _gapY), the names
     in their font (SC_var_hudBarFontHeight), smaller only if the longest name doesn't fit; the direction arrows and the
     respawn countdowns left of the bars. _rowCount rows are used; returns the top of the topmost one (_bottomTop without
-    rows). Without animation (user decision), also the health fill.
+    rows). Without animation, also the health fill.
 */
 SC_fnc_hudLayoutSpawnVehicles = {
     params ["_display", "_barWidth", "_height", "_gapX", "_gapY", "_barX", "_bottomTop", "_rowCount"];
@@ -59,7 +59,7 @@ SC_fnc_hudLayoutSpawnVehicles = {
 
     SC_var_hudSpawnVehicleRowCount = _rowCount;
 
-    // left of the bar a round panel as wide as the row is high (user decision), the arrow centred in it: the arrow
+    // left of the bar a round panel as wide as the row is high, the arrow centred in it: the arrow
     // (SC\hud\pointer_ca.paa) fills the middle two thirds of its texture, its box is SC_var_hudPointerBoxScale times the
     // row height (square, see SC_fnc_transformAlignToSafezone), so it stays inside the circle however it is turned
     private _circleWidth = _height * 9 / 16;
@@ -126,7 +126,7 @@ SC_fnc_hudUpdateSpawnVehicles = {
             _x ctrlShow _shown;
         } forEach [_fill, (_display displayCtrl (9420 + _row)), _labelCtrl];
 
-        // the direction arrow and its round panel not on the map (user)
+        // the direction arrow and its round panel not on the map
         {
             (_display displayCtrl _x) ctrlShow (_shown && {alive _vehicle} && {!visibleMap});
         } forEach [9440 + _row, 9460 + _row];
@@ -169,7 +169,7 @@ SC_fnc_hudUpdateSpawnVehicleCompasses = {
 
     if (isNull _display) exitWith {};
 
-    // the map opened / closed: the arrows go / come back at once (user: no delay), not with the next player stats update
+    // the map opened / closed: the arrows go / come back at once, not with the next player stats update
     if (visibleMap != (missionNamespace getVariable ["SC_var_hudSpawnVehicleMapOpen", false])) then {
         SC_var_hudSpawnVehicleMapOpen = visibleMap;
         [_display] call SC_fnc_hudUpdateSpawnVehicles;

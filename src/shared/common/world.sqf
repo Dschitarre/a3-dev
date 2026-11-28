@@ -18,7 +18,7 @@ CMN_fnc_disableEngineFeatures = {
 // The church bells: the engine rings CfgSFX >> Church at every terrain building whose class has simulation "church"
 // (churches, the cathedral, bell towers; Tanoa 21, Altis 31) while it is simulated, on each machine for itself. No
 // mission can change the config, so every machine with sound turns the simulation of these buildings off for itself
-// (once: terrain objects stay). All game modes, no parameter (user 2026-11-26).
+// (once: terrain objects stay). All game modes, no parameter.
 CMN_fnc_silenceChurchBells = {
     if (!hasInterface || {!isNil "CMN_var_bellsSilenced"}) exitWith {};
 
@@ -117,7 +117,7 @@ CMN_fnc_applyPlayZone = {
     ];
 
     // last: BIS_fnc_moduleCoverMap assigns locals without private (e.g. _marker), which overwrites the caller's
-    // variables of the same name (SQF's dynamic scope); the play zone used to stay at its mission.sqm position
+    // variables of the same name (SQF's dynamic scope)
     if (!isNull _coverMap) then {
         _coverMap setPos _coverMapPos;
         _coverMap setVariable ["objectArea", [_coverMapSize, _coverMapSize, _coverMapDir, true, 0]];
@@ -175,8 +175,7 @@ CMN_fnc_mapZoom = {
     Client, scheduled, runs for the whole mission: the map of the EG spectator (display 60492, map control 62609) is
     centred on the play zone like CMN_fnc_mapZoom whenever it opens; the spectator would centre it on its camera, which
     sits at [0, 0] while no unit is viewed. _zone: code returning [marker, scale factor, max zone size] (read at every
-    opening, the zone changes between rounds). Zoomed out by CMN_var_spectatorMapZoomOut compared to the normal map (with
-    the same scale the spectator's map showed too little around the zone, user).
+    opening, the zone changes between rounds). Zoomed out by CMN_var_spectatorMapZoomOut compared to the normal map.
 */
 CMN_var_spectatorMapZoomOut = 1.75;
 

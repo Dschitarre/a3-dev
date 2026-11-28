@@ -48,8 +48,8 @@ CMN_fnc_getAiNameArr = {
     [_firstName + " " + _lastName, _firstName, _lastName]
 };
 
-// The name set (CfgWorlds >> GenericNames) of the AI on a map whose people have their own names (user 2026-11-25: CUP
-// names on the CUP maps): CUP's Chernarus factions (civilians, CDF, ChDKZ, NAPA) all use CUP_Names_CzechMen; other
+// The name set (CfgWorlds >> GenericNames) of the AI on a map whose people have their own names (CUP names on the CUP
+// maps): CUP's Chernarus factions (civilians, CDF, ChDKZ, NAPA) all use CUP_Names_CzechMen; other
 // maps keep the engine's name of the unit's class (A3 classes: Greek for the I_soldier_F of BR)
 CMN_var_worldNameSets = createHashMapFromArray [
     ["cup_chernarus_a3", "CUP_Names_CzechMen"], ["chernarus", "CUP_Names_CzechMen"], ["chernarus_summer", "CUP_Names_CzechMen"],
@@ -98,13 +98,13 @@ CMN_fnc_initAiUnit = {
     _unit setVariable ["CMN_var_aiNameJipId", [_unit, [_unit] call CMN_fnc_getAiNameArr] remoteExecCall ["setName", 0, _unit]];
     _unit setVariable ["CMN_var_aiSkill", _skillMin + random _skillRange];
 
-    // a group local here: at once - the remoteExec arrived late and then threw the unit out of a group the mode had
-    // put it into meanwhile (Offensive agent, 2026-11-14)
+    // a group local here: at once - a remoteExec can arrive late and throw the unit out of a group the mode has put it
+    // into meanwhile
     if (local (group _unit)) then {
         [_unit] joinSilent grpNull;
 
-        // never flee: a lone AI that everyone is hostile to broke its morale at once, lowered its weapon and ran instead
-        // of fighting (found in BR and SC 2026-11-14; setSkill with one value also sets courage)
+        // never flee: a lone AI that everyone is hostile to breaks its morale at once, lowers its weapon and runs instead
+        // of fighting (setSkill with one value also sets courage)
         (group _unit) allowFleeing 0;
     } else {
         [[_unit], grpNull] remoteExecCall ["join", groupOwner (group _unit)];
@@ -144,7 +144,7 @@ CMN_fnc_initPlayerUnit = {
 };
 
 // Deletes leftover nameless units. Only server-local units (their identity is always known here), never players,
-// playable slots or UAV crews; the old client-side version also hit units whose name had not reached the client yet.
+// playable slots or UAV crews (a client could see units whose name has not reached it yet).
 CMN_fnc_deleteOrphanUnits = {
     {
         deleteVehicle _x;

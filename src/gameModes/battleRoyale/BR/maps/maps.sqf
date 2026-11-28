@@ -1,5 +1,5 @@
 // Battle Royale maps (server; map data on every machine): BR_mapData of BR\maps\mapData<map>.hpp, the play area - the
-// first zone always encloses all land of the map (user 2026-11-23: no area size setting) - and everything that scales
+// first zone always encloses all land of the map - and everything that scales
 // with its radius.
 
 BR_var_referenceRadius = 3800;          // play area radius the loot and vehicle tuning values were made for

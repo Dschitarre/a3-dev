@@ -2,8 +2,8 @@
 // the UI_* blocks of ui\ui.hpp.
 
 // ---- HUD ----
-// In the style of the other modes (user decision 2026-11-13; TDM / GunGame / SC: vanilla fonts, HUD panel color, grey
-// fill bars, only the health green):
+// In the style of the other modes (TDM / GunGame / SC: vanilla fonts, HUD panel color, grey fill bars, only the
+// health green):
 //   top center      like the TDM score: alive count | zone timer | kills in large numbers, their labels in a row under
 //                   them (the middle one the zone status); the timer's panel empties with the phase (grey fill)
 //   bottom right    the health bar where TDM / GunGame have it, above it the boost (while one is active) and the
@@ -171,7 +171,7 @@ class RscTitles {
             BR_HUD_TEAM_ROW(mate1, 1410)
             BR_HUD_TEAM_ROW(mate2, 1420)
 
-            // bottom center while aboard the aircraft (user decision): the jump prompt
+            // bottom center while aboard the aircraft: the jump prompt
             BR_HUD_BOX(jumpPrompt, BR_HudBox, 1230, BR_HUD_JUMP_X, BR_HUD_JUMP_Y, BR_HUD_JUMP_W, UI_ROW, UI_TEXT)
         };
 

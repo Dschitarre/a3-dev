@@ -21,7 +21,7 @@ BR_var_jumpTailGap = 10; // m behind the aircraft's tail a jumper starts
 BR_var_flightLeadIn = 1200; // the route starts and ends this far outside of the play area ...
 BR_var_flightWorldMargin = 100; // ... but this far inside of the world's edges at most (BR_fnc_clipToWorld)
 BR_var_flightLineOffset = 0.8; // the straight line passes the play area's center at most this share of its
-// radius away, any direction and offset equally likely (no part favoured); no zone steers it (user 2026-11-23)
+// radius away, any direction and offset equally likely (no part favoured); no zone steers it
 BR_var_flightLineTries = 64; // bounded search; choose randomly among land-dominated routes
 BR_var_flightMinLandShare = 0.75;
 BR_var_flightRouteProbeStep = 250; // cheap first pass; final route is checked at 100 m
@@ -39,9 +39,7 @@ BR_var_aiDropLocationTypes = ["NameCityCapital", "NameCity", "NameVillage", "Nam
 BR_var_aiDropBuildingRadius = 150; // houses with loot spots this close to a drop spot count for it ...
 BR_var_aiDropMinBuildings = 6; // ... a drop spot needs at least this many ...
 BR_var_aiDropLeftOut = ["castle_wall", "castle_stairs", "castle_gate"]; // class parts that count as no building here
-BR_var_aiDropBuildingsPerAi = 8; // ... and takes one AI per this many (per team before: 6 squads of 4 in Zelenogorsk, 10 of
-// them still unarmed after 10 min - PC test pd55; solo unchanged) (one or two before: Stratis had room for 12 of 40 teams,
-// 20-30 piled on one spot and found nothing)
+BR_var_aiDropBuildingsPerAi = 8; // ... and takes one AI per this many
 BR_var_aiDropSpacing = 350; // drop spots are at least this far apart (a big town has several)
 BR_var_aiDropEdgeMargin = 150; // drop spots lie at least this far inside the play area
 BR_var_aiDropReachShare = 0.85; // an AI's drop spot lies at most this share of its gliding reach from the jump
@@ -126,8 +124,7 @@ BR_fnc_flightRouteQuality = {
     [(_landLength / (_span max 1)) min 1, _maxWater, _span, _first, _last]
 };
 
-// inside the world square: beyond its edges the engine reports no water, so the ground out there counted as land and a
-// route mostly off the map scored best - clipped to the map it was a few kilometres in a corner (user 2026-11-24)
+// inside the world square: beyond its edges the engine reports no water, so the ground out there would count as land
 BR_fnc_inWorld = {
     params ["_p"];
 
@@ -215,7 +212,7 @@ BR_fnc_planFlightRoute = {
     _line params ["_start", "_end"];
 
     // the line stays over the map: around all land the play area reaches far past the world's edges where the land
-    // runs up to them (Chernarus: the route ran kilometres out over nothing - user 2026-11-23)
+    // runs up to them
     private _clipped = [_start, _end] call BR_fnc_clipToWorld;
     _start = _clipped select 0;
     _end = _clipped select 1;
@@ -277,8 +274,8 @@ BR_fnc_planFlight = {
 
 /*
     The aircraft on the planned route (BR_fnc_planFlight), published with the route for the maps and the GPS. It starts
-    flying here: planning the AI jump points after it took 55-110 s on Altis, the aircraft was 11 km along by then, and
-    every AI whose point lay behind it jumped in the first second (37-74 at once: collisions, glides of 10 km).
+    flying here, before the AI jump points are planned: that takes up to two minutes on Altis, and every AI whose point
+    lay behind the aircraft by then would jump at once.
 */
 BR_fnc_createAircraft = {
     private _start = BR_var_flightRoute select 0;
@@ -330,10 +327,9 @@ BR_fnc_createAircraft = {
 };
 
 /*
-    Server and every client: BR_fnc_flightStep each frame until the end of the route. The server's aircraft flies level
-    (probe fl421altis: pitch and roll below 0.5 deg, altitude within 1 cm, with or without the pilot AI), yet the
-    players in it saw it jitter (user 2026-11-23/24): a client only gets network updates of it and simulates the rest
-    itself. With the schedule known (start time, route, speed, altitude) each client puts it where the server does.
+    Server and every client: BR_fnc_flightStep each frame until the end of the route. A client only gets network
+    updates of the aircraft and simulates the rest itself, so it would jitter; with the schedule known (start time,
+    route, speed, altitude) each client puts it where the server does.
 */
 BR_fnc_startFlightStep = {
     if (!isNil "BR_var_flightStepEh") exitWith {};
@@ -498,8 +494,8 @@ BR_fnc_planAiDropSpots = {
 
     (BR_var_lootTents select {_x distance2D BR_var_playAreaCenter <= BR_var_playAreaRadius - BR_var_aiDropEdgeMargin})) select {
         [_x] call BR_fnc_isLootBuilding &&
-        // castle walls, stairs and gates are no houses here either (as for the loot site markers): one castle counted
-        // as dozens of buildings and drew three squads onto its walls, whose loot they never reached (PC test pd35)
+        // castle walls, stairs and gates are no houses here either (as for the loot site markers): one castle would count
+        // as dozens of buildings and draw squads onto its walls, whose loot they never reach
         {private _class = toLowerANSI typeOf _x; (BR_var_aiDropLeftOut findIf {_x in _class}) < 0}
     };
 
@@ -622,11 +618,9 @@ BR_fnc_aiChooseDrop = {
     };
 
     // Each reachable spot costs its load after this team squared (teams / room, room by its buildings: the loot there;
-    // squared: linear let one big town draw 50 of 150 teams, they collided in the air and emptied it) plus its
-    // distance outside of the first zone in walks of the first phase; the cheapest wins (ties at random). Teams spread
-    // by the loot of the spots and only go far from the zone when the near spots are much fuller. Before: fixed rules
-    // (near the zone, else room, else the fewest teams) piled 20-51 teams on one spot (Altis, Stratis), and spots far
-    // from the zone left the AI no time to loot (on the whole island a sixth once landed 9 - 12 km away, unarmed).
+    // squared, so one big town does not draw a large share of the teams) plus its distance outside of the first zone in
+    // walks of the first phase; the cheapest wins (ties at random). Teams spread by the loot of the spots and only go
+    // far from the zone when the near spots are much fuller.
     BR_var_firstZone params ["_zoneCenter", "_zoneRadius"];
 
     private _firstPhase = BR_var_zonePhases select 0;
@@ -832,7 +826,7 @@ BR_fnc_aiGlide = {
     private _heading = getDir _parachute;
 
     // the heading only while it really turns: setDir is a transform correction that clients see as a jerk, and the
-    // engine never turns the canopy by itself (probe cc352), so on course nothing but the velocity is set. Without
+    // engine never turns the canopy by itself, so on course nothing but the velocity is set. Without
     // setDir it cannot be steered at all: the engine keeps its own flight direction (velocity only: 2 km off).
     if (abs _turn > BR_var_aiTurnDeadband) then {
         _heading = _heading + ((-_maxTurn) max (_turn min _maxTurn));

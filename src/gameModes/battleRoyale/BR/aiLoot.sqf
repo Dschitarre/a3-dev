@@ -95,7 +95,7 @@ BR_fnc_aiScavenge = {
     if (_needy) exitWith {[_unit, _urgent] call BR_fnc_aiSeekWeapon};
 
     private _radius = [BR_var_aiScavengeRadius, BR_var_aiUrgentLootRadius] select _urgent;
-    // the zone presses: only a building on the way (an unarmed AI used to search one after another and stay)
+    // the zone presses: only a building on the way (not one after another)
     private _ahead = [[], [_unit] call BR_fnc_aiZoneDestination] select _urgent;
     private _building = [_unit, _radius, _ahead] call BR_fnc_aiLootableBuilding;
 
@@ -159,8 +159,8 @@ BR_fnc_aiLootableBuilding = {
 
     if (!_best || {count _candidates < 2}) exitWith {_candidates param [0, objNull]};
 
-    // _best (an AI without weapon): the most loot spots for the way, not just the nearest - on Chernarus the nearest
-    // were mostly sheds (4 spots of the lowest tier): AI searched 12 buildings and took 25 things, but no weapon (pd42)
+    // _best (an AI without weapon): the most loot spots for the way, not just the nearest (on Chernarus the nearest are
+    // mostly sheds with 4 spots of the lowest tier)
     private _score = _candidates apply {
         (([_x] call BR_fnc_buildingLootQuality) select 1) / ((_unit distance2D _x) + BR_var_aiNeedyBuildingWay)
     };
@@ -169,8 +169,7 @@ BR_fnc_aiLootableBuilding = {
 
 /*
     True while another AI searches the building (BR_fnc_aiStartLootRun claims it): up to a dozen AI land at one drop spot
-    and all ran to the nearest house - the first took everything, the others arrived at an empty one (half the runs
-    into buildings with loot took nothing; the same held for the team mates of a squad before)
+    and would all run to the nearest house, where the first takes everything
 */
 BR_fnc_aiLootClaimed = {
     params ["_building", "_unit"];
@@ -200,9 +199,7 @@ BR_fnc_isPrimaryClass = {
 
 /*
     The nearest primary weapon lying within _radius that the unit could take (objNull if none): in a loot holder or a
-    dropped weapon holder, or still on a body; for a unit with a primary but no ammo also ammo for it. An AI without
-    weapon or ammo used to walk on to the zone when no fresh building was within 80 m and stayed unarmed for good (16 of
-    58 alive AI ten minutes after landing).
+    dropped weapon holder, or still on a body; for a unit with a primary but no ammo also ammo for it.
 */
 BR_fnc_aiWeaponSource = {
     params ["_unit", "_radius"];
@@ -243,12 +240,9 @@ BR_fnc_aiWeaponSource = {
 BR_fnc_aiSeekWeapon = {
     params ["_unit", "_urgent"];
 
-    // "urgent" starts for everyone outside the next circle once it shrinks, with the edge often minutes away: an
-    // unarmed AI then looked only 30 m around and walked into the zone unarmed for good (PC tests pd01-pd06, duo/squad:
-    // 7-26 of 36-89 alive AI unarmed 10 min after landing, nearly all urgent). Urgent, it now looks as far as the time
-    // to the edge allows (there and on: half of the slack after the fixed costs), at least the old 30 m.
-    // Calm, it looks up to BR_var_aiWeaponSeekMax (nothing within 250 m left some unarmed for good; the nearest source
-    // still wins).
+    // "urgent" starts for everyone outside the next circle once it shrinks, with the edge often minutes away. Urgent, it
+    // looks as far as the time to the edge allows (there and on: half of the slack after the fixed costs), at least
+    // 30 m. Calm, it looks up to BR_var_aiWeaponSeekMax (the nearest source still wins).
     private _slack = ([getPosATL _unit] call BR_fnc_zoneEdgeTime) - serverTime;
     private _radius = (((_slack - 25) * BR_var_aiTravelSpeed / 2) min
         ([BR_var_aiWeaponSeekMax, BR_var_aiWeaponSeekRadius] select _urgent)) max BR_var_aiUrgentLootRadius;
@@ -288,7 +282,7 @@ BR_fnc_aiStartLootRun = {
     _unit setVariable ["BR_var_aiLootMisses", 0];
     _unit setVariable ["BR_var_aiLootTook", false];
     // the run ends when the unit is drawn this far away: at least BR_var_aiLootRadius, farther for a building that was
-    // farther away at the start (an unarmed AI goes up to BR_var_aiWeaponSeekMax - such runs ended at once before)
+    // farther away at the start (an unarmed AI goes up to BR_var_aiWeaponSeekMax)
     _unit setVariable ["BR_var_aiLootRunReach", ((_unit distance2D _building) + 30) max BR_var_aiLootRadius];
 };
 
@@ -333,8 +327,8 @@ BR_fnc_aiLootRunTick = {
         (_unit getVariable ["BR_var_aiLootProgress", [1e9, time]]) params ["_distance", "_progressAt"];
         private _nowDistance = _unit distance _holder;
         // progress counts only close by: farther away the way is watched by BR_fnc_aiCheckStuck (BR_fnc_aiMoveTo). With
-        // ~150 AI the engine often plans a way for more than 8 s - holders were skipped from 50-120 m before the unit
-        // even started, and each new holder ordered anew restarted the planning: half the runs took nothing
+        // ~150 AI the engine often plans a way for more than 8 s, and each new holder ordered anew restarts the
+        // planning
         if (_nowDistance < _distance - 1 || {_unit distance2D _holder > BR_var_aiLootNearDistance}) then {
             _progressAt = time;
             _unit setVariable ["BR_var_aiLootProgress", [_nowDistance, time]];
@@ -344,8 +338,8 @@ BR_fnc_aiLootRunTick = {
         if (time - _progressAt > _worthTime ||
             {time - (_unit getVariable ["BR_var_aiLootStart", time]) > ([BR_var_aiLootTimeout, BR_var_aiUrgentLootTimeout] select _urgent)}) then {
             [_unit, _holder] call BR_fnc_aiSkipLootHolder;
-            // holders it cannot reach one after another (a radar mast's platform 8-10 m up: 10 holders, 5 minutes for
-            // nothing - PC test pd15): the building is given up
+            // holders it cannot reach one after another (e.g. a radar mast's platform 8-10 m up): the building is given
+            // up
             private _misses = (_unit getVariable ["BR_var_aiLootMisses", 0]) + 1;
             _unit setVariable ["BR_var_aiLootMisses", _misses];
             if (_misses >= BR_var_aiLootMaxMisses) then {[_unit] call BR_fnc_aiEndLootRun};
@@ -462,8 +456,7 @@ BR_fnc_aiEndLootRun = {
     params ["_unit"];
 
     // a run that reached no holder at all counts against the building; after BR_var_aiLootMaxFails such runs (by any
-    // AI) no AI goes there again: castle walls with their loot up on the wall drew 10 AI of three squads into 64 runs
-    // for nothing (PC test pd35), a radar mast's platform one AI for 5 minutes (pd15)
+    // AI) no AI goes there again (e.g. castle walls with their loot up on the wall, a radar mast's platform)
     private _building = _unit getVariable ["BR_var_aiLootBuilding", objNull];
     if (!isNull _building && {!(_unit getVariable ["BR_var_aiLootTook", false])}) then {
         private _fails = ([_building, "BR_var_aiLootFails", 0] call BR_fnc_bGet) + 1;

@@ -20,7 +20,7 @@ BR_fnc_getMapControls = {
 BR_var_teamIconDistance = 1500; // team mates farther away get no icon over their heads
 BR_var_showTeam3DIcons = true;
 BR_var_showTeam3DNames = true;
-BR_var_mapNamesOnlyOnHover = false; // names next to the map icons by default (user 2026-11-24), never on the GPS
+BR_var_mapNamesOnlyOnHover = false; // names next to the map icons by default, never on the GPS
 BR_var_showDropMapIcons = true;
 BR_var_showZone3D = true;
 BR_var_mapMinZoomRadius = 400; // the map opens at least this wide around the next zone
@@ -33,7 +33,7 @@ BR_var_gpsPanelInterval = 0.25; // s: the GPS is kept in (during the flight: ope
 BR_var_zoneEdgeDrawDistance = 600; // the zone edges are drawn this far around the camera ...
 BR_var_zoneEdgeStep = 15; // ... in pieces this long ...
 BR_var_zoneEdgeHeights = [0.5, 10, 20, 30, 40, 50]; // ... as lines at these heights above the ground: a wall
-                                                     // that rises over the trees (user 2026-11-23; 0.5-4 m before)
+                                                     // that rises over the trees
 BR_var_iconMan = "\A3\ui_f\data\map\vehicleicons\iconMan_ca.paa";
 BR_var_iconAircraft = "\A3\ui_f\data\map\vehicleicons\iconPlane_ca.paa";
 BR_var_iconJumpEnd = "\A3\ui_f\data\map\markers\military\end_CA.paa";
@@ -143,7 +143,7 @@ BR_fnc_drawMap = {
 
     private _metresPerPixel = [_map] call BR_fnc_mapMetresPerPixel;
 
-    // both circles from the first shrink on: before, the zone is the whole map (user 2026-11-24)
+    // both circles from the first shrink on: before it, the zone is the whole map
     if (call BR_fnc_nextZoneShown) then {
         [_map, _center, _radius, BR_var_colorDanger, _metresPerPixel] call BR_fnc_drawThickCircle;
     };
@@ -167,8 +167,7 @@ BR_fnc_drawMap = {
 
 // ---- team on the maps ----
 /*
-    The player and its team mates exactly as SC shows its own unit and group mates (user 2026-11-23: before, BR drew
-    the whole team in the side green, the player looked like the engine's own marker). SC gets this from the mapmarker
+    The player and its team mates exactly as SC shows its own unit and group mates. SC gets this from the mapmarker
     mod (MM_fnc_addUnitIcon / MM_fnc_addParachuteIcon / MM_fnc_addVehicleIcon / MM_fnc_drawIcons in
     mods\mapmarker\...\drawing.sqf): the man icon turned where the unit looks, the player in the own yellow and the
     mates in white, a heal icon while downed, a parachute or vehicle icon while in one (the vehicle in the color of the
@@ -503,8 +502,7 @@ BR_fnc_drawFlight = {
 
 // ---- zone in 3D ----
 
-// "Draw3D" mission event handler, only while the spectator is open (user 2026-11-23; playing, the map and the GPS show
-// the zone): the edges of the current circle (danger color) and the next safe zone (white) near the camera, as a wall
+// "Draw3D" mission event handler, only while the spectator is open (playing, the map and the GPS show the zone): the edges of the current circle (danger color) and the next safe zone (white) near the camera, as a wall
 // of lines over the ground (BR_var_zoneEdgeHeights)
 BR_fnc_drawZone3D = {
     if (!BR_var_showZone3D) exitWith {};

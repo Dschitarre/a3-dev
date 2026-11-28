@@ -5,8 +5,7 @@
 // [category, config class of its entries, weight of a loot spot [in civilian buildings, at military sites]]; "ammo" is
 // rolled from the weapons. The weapon categories' weights only give their sum (all weapon spots): a weapon spot of
 // either rolls any weapon class by the shares of its building tier (BR_var_lootWeaponClasses). Military sites hold
-// more ammo, armor, attachments and grenades, civilian buildings more clothes, backpacks, food and bandages (user
-// 2026-11-25: military loot apart from civilian and hunting loot)
+// more ammo, armor, attachments and grenades, civilian buildings more clothes, backpacks, food and bandages
 BR_var_lootCategories = [
 ["primaries", "CfgWeapons", [30, 50]],
 ["handguns", "CfgWeapons", [10, 4]],
@@ -33,11 +32,10 @@ BR_var_lootWeaponCategories = ["primaries", "handguns"];
 BR_var_tierWeightsAirdrop = [0, 0, 0, 100]; // common, uncommon, rare, elite: supply drops contain only elite gear
 
 /*
-    Weapon spawns (user 2026-11-23): a weapon spot rolls a weapon class by fixed shares first, then a weapon family of
+    Weapon spawns: a weapon spot rolls a weapon class by fixed shares first, then a weapon family of
     that class (one weapon: all its skins and attachment presets, BR_fnc_weaponFamilyKeys), then one of its variants.
-    So neither a class nor a weapon gets more common because a mod ships it in many variants - before, the 28 CUP
-    launcher classes (each its own "caliber") made launchers a big part of the military loot on Chernarus.
-    The shares go by the building tier (user 2026-11-25: not the same everywhere): civilian buildings hold handguns,
+    So neither a class nor a weapon gets more common because a mod ships it in many variants.
+    The shares go by the building tier: civilian buildings hold handguns,
     shotguns, SMGs and hunting rifles, now and then a rifle; military sites rifles, machine guns, precision rifles and
     launchers. A class with share 0 in a tier is never found there: machine guns, anti-materiel rifles and launchers
     only at military sites (and in supply drops). Rows [class, shares in % per building tier [poor (ruins, sheds),
@@ -60,17 +58,16 @@ BR_var_lootWeaponClasses = [
 // Quality: per family a config score (BR_fnc_weaponQualityScore), ranked within its class: quality 0 (worst family of
 // the class) .. 1 (best). A family's weight runs linearly from 1 (quality 0) to BR_var_lootQualityRatio ^ exponent
 // (quality 1); families outside the tier's quality range are not rolled. Every family keeps a chance, none dominates.
-BR_var_lootQualityRatio = 4; // normal houses: the best family of a class spawns 4x less often than the worst (user 2026-11-23)
+BR_var_lootQualityRatio = 4; // normal houses: the best family of a class spawns 4x less often than the worst
 // per building tier (poor, medium, rare, elite): [exponent, lowest quality, highest quality]. Poor: best 8x rarer;
 // medium (normal houses): 4x rarer; rare (churches, offices, industry): all alike; elite (military sites, supply
 // drops): the better half of each class only, its best 2x more common. The best families of each class (above the
-// civilian tiers' highest quality) only at military sites (user 2026-11-25)
+// civilian tiers' highest quality) only at military sites
 BR_var_lootTierQuality = [[-1.5, 0, 0.6], [-1, 0, 0.75], [0, 0, 0.85], [0.5, 0.5, 1]];
 // Gear apart by kind (BR_fnc_lootItemKind: 0 civilian, 1 military, 2 military only): civilian buildings roll their
 // vests, helmets, uniforms, attachments and throwables from the civilian ones, military sites from the military ones,
 // BR_var_lootKindMain of the time (else the other kind); military-only gear (armor level BR_var_lootMilitaryOnlyArmor+,
-// night and thermal vision, laser designators, explosive grenades) is never found in civilian buildings (user
-// 2026-11-25)
+// night and thermal vision, laser designators, explosive grenades) is never found in civilian buildings
 BR_var_lootKindCategories = ["vests", "helmets", "uniforms", "attachments", "throwables"];
 BR_var_lootKindMain = 0.85;
 BR_var_lootMilitaryOnlyArmor = 3; // vests and helmets of this armor level (BR_var_armorLevelThresholds) and up
@@ -86,7 +83,7 @@ BR_var_lootMarksmanMaxRounds = 20; // ... in a semi-automatic rifle with at most
 // Ammo follows the weapons: a weapon comes with some of its own magazines; an ammo spot of a building (or crate) with
 // weapons is for one of them (they are rolled first), else for a caliber of the weapon pool, as likely as a weapon of
 // that caliber is (BR_var_ammoFamilies: one magazine per caliber, however many weapons and magazine classes share it)
-// per loot profile [civilian, military] (user 2026-11-25: more immersive): a hunting rifle in a farm house comes with a
+// per loot profile [civilian, military]: a hunting rifle in a farm house comes with a
 // magazine or two, a rifle in a barrack with a few; an ammo spot of a barrack is a bigger stash
 BR_var_lootWeaponMagazines = [[1, 2], [2, 4]]; // magazines that come with a weapon, random in [min, max]
 BR_var_lootAmmoMatchChance = 0.85; // ammo fits a weapon of the same building (or crate) this often
@@ -95,18 +92,16 @@ BR_var_lootAmmoCount = [[1, 2], [2, 4]]; // magazines of an ammo spot, random in
 // civilian buildings, any attachment of its own at military sites
 BR_var_lootWeaponAttachmentChance = [0.1, 0.35];
 // medical spots: their tier weights by profile, not the building's: the first aid kits are common and poor, the
-// Medikit is the pools' elite medical item - every medical spot of a military site was a Medikit (user 2026-11-25:
-// far too many); now 1 in 10 there, none in other civilian buildings; hospitals and medical tents have their own
-// share (theme row 0)
+// Medikit is the pools' elite medical item: 1 in 10 medical spots of a military site, none in other civilian
+// buildings; hospitals and medical tents have their own share (theme row 0)
 BR_var_lootMedicalTiers = [[60, 40, 0, 0], [40, 50, 0, 10]];
 
 // building loot by class (BR_fnc_buildingLootQuality; a map object without a class by its model name): [[parts of the class name], tier weights, loot spots at most],
 // the first row whose part the (lower case) class contains; else BR_var_buildingLootDefault (normal houses). The parts
 // cover the base game and CUP terrains (Land_Mil_*, Land_Barrack2, Land_A_Office01, Land_A_GeneralStore_01, ...)
 BR_var_buildingLootClasses = [
-// military: the container houses Land_Cargo_House_V1-3_F, not the slum huts Land_Cargo_House_Slum_F (Altis: 36 "bases"
-// of slum huts with military loot - offline dump fd435, 2026-11-24); also the watchtowers and the airfield control tower (Livonia models of Chernarus 2020: Balota's military
-// buildings fell under "tower" as plain good loot and its marker showed one barrack only - user 2026-11-24)
+// military: the container houses Land_Cargo_House_V1-3_F, not the slum huts Land_Cargo_House_Slum_F; also the
+// watchtowers and the airfield control tower (Livonia models of Chernarus 2020)
 [["cargo_hq", "cargo_patrol", "cargo_tower", "cargo_house_v", "miloffices", "barrack", "bunker", "mil_", "military", "tent_east", "tent2_west", "tent_west", "tent_small_west",
     "guardtower", "controltower"], [0, 0, 0, 100], 9],
 [["ruin", "land_d_", "_d_", "land_u_", "slum", "unfinished", "shed", "garage", "shack"], [100, 0, 0, 0], 4],
@@ -115,7 +110,7 @@ BR_var_buildingLootClasses = [
 BR_var_buildingLootDefault = [[0, 100, 0, 0], 7];
 BR_var_buildingLootCache = createHashMap;
 
-// Themed buildings (decided by the user, 2026-11-23): medical buildings and tents hold mostly medical loot, hunting
+// Themed buildings: medical buildings and tents hold mostly medical loot, hunting
 // stands and lodges mostly hunting gear, so a place looks like what it is. Rows [[parts of the building class], share
 // of its loot spots rolled from the theme, [[category, weight, [parts of the item class]], ...]], the first row whose
 // part the (lower case) building class contains (BR_fnc_buildingLootTheme); the other spots roll as usual. An entry
@@ -127,8 +122,8 @@ BR_var_buildingLootCache = createHashMap;
 // Land_A_Hospital, Land_Hospital, Land_CUP_OPX_Clinic, MASH (CUP); Land_Misc_deerstand and Land_Posed (Czech: hunter's
 // raised hide) of the CUP terrains, Land_DeerStand_0*_F of the base game.
 // Entries of category "weapons" name weapon classes (BR_var_lootWeaponClasses) instead of item parts: a weapon of one
-// of them as the building tier rolls it (user 2026-11-25: more immersive loot - heavy weapons in bunkers, precision
-// rifles in watchtowers, shotguns and hunting rifles in barns). Rows 0 (medical) and 1 (hunting) are also loot site
+// of them as the building tier rolls it (heavy weapons in bunkers, precision rifles in watchtowers, shotguns and
+// hunting rifles in barns). Rows 0 (medical) and 1 (hunting) are also loot site
 // kinds of the map markers (BR_var_lootSiteKinds); the others only shape the loot.
 BR_var_lootThemes = [
 [["hospital", "medicaltent", "medevac", "healthcenter", "clinic", "mash", "stan_ep1"], 0.75, [
@@ -137,8 +132,8 @@ BR_var_lootThemes = [
     ["bandages", 4, []],
     ["uniforms", 1, ["labcoat", "medic"]]
 ]],
-// hunting camps of Chernarus 2020 (probe cp401, user 2026-11-23): camp cabins, deer feeding shacks, forest huts; castles
-// hold hunting loot as in DayZ, and so do the log houses (Land_House_2W05_F) (user 2026-11-24)
+// hunting camps of Chernarus 2020: camp cabins, deer feeding shacks, forest huts; castles hold hunting loot as in DayZ,
+// and so do the log houses (Land_House_2W05_F)
 [["deerstand", "land_posed", "hunt", "camp_house", "feedshack", "hut06", "castle", "house_2w05"], 0.75, [
     ["primaries", 6, ["hunter", "cz550", "cz584", "remington700", "mosin", "leeenfield", "kar98", "winchester"]],
     ["handguns", 1, ["hunter"]], // the sawed-off hunter shotgun of the base game
@@ -147,7 +142,7 @@ BR_var_lootThemes = [
     ["helmets", 1, ["ushanka", "booniehat", "_hat"]],
     ["attachments", 1, ["binocular"]]
 ]],
-// military sites by building (user 2026-11-25): watch and guard towers - precision rifles, optics, ammo
+// military sites by building: watch and guard towers - precision rifles, optics, ammo
 [["guardtower", "watchtower", "cargo_patrol", "cargo_tower", "bagbunker_tower"], 0.5, [
     ["weapons", 4, ["marksman", "snipers", "antiMateriel"]],
     ["attachments", 3, ["optic"]],
@@ -190,7 +185,7 @@ BR_var_lootThemes = [
     ["backpacks", 2, []]
 ]],
 // shops, pubs, the fuel stations' shops - drinks, bandages, bags, clothes
-// (whole names: "shop" alone took the workshops - probe fd07chern)
+// (whole names: "shop" alone would also match the workshops)
 [["generalstore", "villagestore", "fuelstation_03_shop", "fuelstation_shop", "shop_city", "shop_town", "supermarket",
     "market", "kiosk", "a_pub"], 0.6, [
     ["drinks", 4, []],
@@ -229,8 +224,7 @@ BR_var_weaponMagazinesCache = createHashMap;
 BR_var_lootBuildingCache = createHashMap;
 // Army tents of the A2/CUP terrains (Chernarus) are map objects without a class and without building positions: their
 // loot lies on a grid on the floor (BR_fnc_lootPositions). They are found once per mission (BR_fnc_findLootTents).
-// (user 2026-11-25: also the big OA tents - stan_ep1 is the medical one - and the bag bunkers without building
-// positions; none of them got loot before: probe lc01, 22 big tents and 17 bunkers on Chernarus)
+// Also the big OA tents (stan_ep1 is the medical one) and the bag bunkers without building positions.
 BR_var_lootTentModels = ["tent_east.p3d", "tent2_west.p3d", "tent_west.p3d", "tent_small_west.p3d", "stan_east_ep1.p3d",
     "stan_east.p3d", "stan_ep1.p3d", "bagbunker_tower_f.p3d", "bagbunker_small_f.p3d"];
 BR_var_lootTentTypes = ["HOUSE", "BUNKER", "FORTRESS", "HOSPITAL", "BUILDING", "VIEW-TOWER"]; // their terrain types
@@ -334,8 +328,8 @@ BR_fnc_publicLootCategory = {
     _kind params [["_major", ""], ["_minor", ""]];
 
     if (_major == "Weapon") exitWith {
-        // only weapons whose ammunition does harm: the spectrum device's antennas count as handguns, and an AI that took
-        // one tried to rearm it for 16 minutes (squad test br399)
+        // only weapons whose ammunition does harm: the spectrum device's antennas count as handguns, and an AI that takes
+        // one tries to rearm it for good
         private _magazine = [_class] call BR_fnc_weaponMagazine;
         private _hit = getNumber (configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo") >> "hit");
 
@@ -431,7 +425,7 @@ BR_fnc_initLootServer = {
 
                 private _classConfig = configFile >> _configRoot >> _class;
 
-                // no static weapon bags (assembleInfo: CUP's *_Gun_Bag, tripods - user 2026-11-25), as in the completion
+                // no static weapon bags (assembleInfo: CUP's *_Gun_Bag, tripods), as in the completion
                 if (isClass _classConfig && {getNumber (_classConfig >> "scope") >= 2} &&
                     {_category != "backpacks" || {!isClass (_classConfig >> "assembleInfo")}}) then {
                     (_tiers select (0 max _tier min 3)) pushBackUnique _class;
@@ -904,7 +898,7 @@ BR_fnc_rollLoot = {
 
     // gear apart by kind (BR_var_lootKindPools): the building's own kind mostly, the other one now and then; the kind
     // first, then the tier: a kind without classes in the rolled tier takes its nearest tier that has some (CUP's
-    // civilian clothes are all in the poor tier: houses held military uniforms only - probe fd05chern)
+    // civilian clothes are all in the poor tier)
     private _kindPools = BR_var_lootKindPools get _category;
 
     if (!isNil "_kindPools") exitWith {
@@ -1295,8 +1289,7 @@ BR_fnc_rollLootSpot = {
 
 /*
     Variables of buildings and loot sources (server-local), kept in a HashMap by hashValue: setVariable does nothing on
-    terrain objects without a config class - the army tents (ca\misc3\tent_east.p3d) of the map mod spawned their
-    loot again on every pass of BR_fnc_lootLoop, pile on pile (user 2026-11-25; probe vt01: set 42, read -1).
+    terrain objects without a config class (e.g. the army tents ca\misc3\tent_east.p3d of the map mod).
 */
 BR_var_buildingVars = createHashMap;
 
@@ -1304,7 +1297,7 @@ BR_var_buildingVarsNone = createHashMap; // never written: the vars of a buildin
 BR_fnc_bGet = {
     params ["_object", "_name", "_default"];
     private _vars = BR_var_buildingVars getOrDefault [hashValue _object, BR_var_buildingVarsNone];
-    // a nil default (tent positions) is no variable: returning it raised "Undefined variable" (probe fd03)
+    // a nil default (tent positions): the plain get, which returns nil for a missing entry
     if (isNil "_default") exitWith {_vars get _name};
     _vars getOrDefault [_name, _default]
 };
@@ -1352,7 +1345,7 @@ BR_fnc_spawnBuildingLoot = {
 
             if (_content isNotEqualTo []) then {
                 // on the floor under the building position: the Livonia barracks have theirs up to 0.43 m above it,
-                // Land_i_Barracks_V1_F 0.52 m (probe fd03) - the loot floated there
+                // Land_i_Barracks_V1_F 0.52 m
                 private _posASL = AGLToASL _pos;
                 private _floor = lineIntersectsSurfaces [_posASL vectorAdd [0, 0, 0.1], _posASL vectorAdd [0, 0, -1],
                     objNull, objNull, true, 1, "GEOM", "FIRE"];
@@ -1467,27 +1460,26 @@ BR_fnc_cleanUpLoot = {
 
 // ---- loot sites and airfields (map markers) ----
 
-// Four kinds of marked sites only (user 2026-11-23; 400 markers on Chernarus before, most of them single dull houses):
+// Four kinds of marked sites only:
 // [how, what, marker type, color, link distance, least counted buildings of a site, class parts left out, [smallest,
 // largest marker size], class parts of which a site needs one, class parts that only place the marker, true: one
 // building of those core parts is a site by itself, else the least buildings are needed]. A themed
-// building only counts for its theme; a lone tent is no site of any kind (single army tents in the open made red
-// markers "in the middle of nowhere"). Colours: user 2026-11-24 (military red, medical blue). The order is the drawing
-// order, bottom to top (user 2026-11-24: green, white, blue, red, then the airfields).
+// building only counts for its theme; a lone tent is no site of any kind. The order is the drawing order, bottom to
+// top: green, white, blue, red, then the airfields.
 // - green, hunting camps: buildings of the hunting theme (row 1) within 300 m, 2 or more, with a camp cabin or a castle
 //   (keep, bastion) among them: deer stands and feed shacks alone are no camp, and the map does not even show them;
-//   a single cabin in the forest is none either (user screenshots 2026-11-24). Left out: log houses and the small huts
-//   (hut06) - they hold hunting loot but stand in every village. Castle walls, stairs and gates do not count (one
-//   castle was 36 "buildings") but place the marker: on the castle, not on a ruin beside it (Devil's Castle);
+//   a single cabin in the forest is none either. Left out: log houses and the small huts (hut06) - they hold hunting
+//   loot but stand in every village. Castle walls, stairs and gates do not count but place the marker: on the castle,
+//   not on a ruin beside it (Devil's Castle);
 // - white, special civilian buildings: churches, office blocks (CUP A_Office, Altis Offices_01 - not the military
 //   offices MilOffices, they are red), airport buildings, schools
 //   ... by class parts - a single one counts, plain houses, sheds, barns and shops never. Not: halls (hangars, factory
 //   halls), lighthouses, castles (hunting places), wayside chapels (1 loot spot), radar stations (military sites, the
-//   white marker beside the NWAF satellite dish) - user 2026-11-24;
+//   NWAF satellite dish);
 // - blue, medical places: buildings and tents of the medical theme (row 0 of BR_var_lootThemes), a single one counts;
 // - red, military places: buildings of the military loot class (row 0 of BR_var_buildingLootClasses) within 350 m: 2 or
-//   more, or a single barrack, bunker or control tower - every base, also a small one, gets a marker (user 2026-11-24);
-//   a lone watchtower is none (they stand all around the bases and made a marker each - offline dump fd427). Balota
+//   more, or a single barrack, bunker or control tower - every base, also a small one, gets a marker; a lone
+//   watchtower is none (they stand all around the bases). Balota
 //   airfield: its barrack with two watchtowers and its control tower.
 BR_var_lootSiteKinds = [
 ["theme", 1, "n_recon", "ColorGreen", 300, 2, ["house_2w05", "hut06"], [0.5, 0.9],
@@ -1500,17 +1492,15 @@ BR_var_lootSiteKinds = [
     ["barrack", "bunker", "mil_", "military", "miloffices", "cargo_hq", "cargo_house_v", "controltower", "tent"], [], true]
 ];
 BR_var_lootSiteLink = 150; // default link distance of a kind
-// towers on a base's perimeter join a site but never link it on and never start one: watchtowers chained the base north
-// of the NWAF into the airfield's site, and two lone watchtowers west of Tisy were marked as a base (user 2026-11-25)
+// towers on a base's perimeter join a site but never link it on and never start one
 BR_var_lootSiteTowers = ["guardtower", "watchtower"];
-// marker size by the counted buildings of a site (user 2026-11-24): 1 building the kind's smallest, each step up as
+// marker size by the counted buildings of a site: 1 building the kind's smallest, each step up as
 // the square root, at most its largest; the civilian icon is drawn smaller than the NATO ones at the same size
 BR_var_lootSiteSizeStep = 0.1; // size per square root of the further buildings (2: +0.1, 5: +0.2, 10: +0.3, 26: +0.5)
 // two markers of different kinds closer than this (a camp with a medical tent) move apart to this distance, so both
-// show when zoomed in; farther apart they stay on their buildings (pushing them 250 m apart put a base's marker into
-// the forest beside it - user 2026-11-24)
+// show when zoomed in; farther apart they stay on their buildings
 BR_var_lootSiteMarkerNudge = 80;
-// airfields: a plain grey plane icon (the NATO box "n_plane" read as one more loot site - user 2026-11-24)
+// airfields: a plain grey plane icon (a NATO box would read as one more loot site)
 BR_var_airfieldMarkerType = "c_plane";
 BR_var_airfieldMarkerColor = "ColorGrey";
 BR_var_lootSiteMarkers = [];
@@ -1518,7 +1508,7 @@ BR_var_lootSiteMarkers = [];
 /*
     Scheduled (server): global map markers on the play area's loot sites and airfields. A site: buildings of one kind
     (BR_var_lootSiteKinds) linked by BR_var_lootSiteLink; its marker sits on the building closest to their middle (the
-    middle itself lay in the forest beside a spread camp - user 2026-11-24) and grows with its buildings
+    middle itself can lie in the forest beside a spread camp) and grows with its buildings
     (BR_var_lootSiteSizeStep). Airfields: the world's runways
     (CfgWorlds ilsPosition and secondary airports).
 */
@@ -1620,7 +1610,7 @@ BR_fnc_markLootSites = {
                 ) then {
                     // the marker on the building closest to the middle of them (not on the empty middle itself: in the
                     // forest beside a spread camp); a camp's on its cabins, a castle's on the castle - the deer stands
-                    // of a camp reach a kilometre into the fields and pulled it there (Metalurg - user 2026-11-24)
+                    // of a camp can reach a kilometre into the fields
                     if (_placing isNotEqualTo []) then {_positions = _placing};
 
                     private _middle = [0, 0, 0];

@@ -304,8 +304,7 @@ SC_fnc_setEarplugsHooks = {
     E_var_iconPosition = {call SC_fnc_earplugsIconPosition};
 };
 
-// While the player stats panel is shown, the icon sits above its right column at the right screen edge (user decision
-// 2026-11-13): right aligned with the rank bar, above it; otherwise at the mod's default place left of the vanilla
+// While the player stats panel is shown, the icon sits above its right column at the right screen edge: right aligned with the rank bar, above it; otherwise at the mod's default place left of the vanilla
 // weapon info.
 SC_fnc_earplugsIconPosition = {
     private _default = call E_fnc_defaultIconPosition;

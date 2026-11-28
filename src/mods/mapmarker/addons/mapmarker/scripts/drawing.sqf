@@ -245,8 +245,7 @@ MM_fnc_addVehicleIcon = {
         default {[([_crew, crew _vehicle] select (_crew isEqualTo [])) select 0] call MM_fnc_unitSideColor};
     };
 
-    // one base size for all vehicles, scaled only by the icon's opaque area (user decision: not by the mass, that made
-    // the sizes inconsistent); the label keeps its distance to the icon
+    // one base size for all vehicles, scaled only by the icon's opaque area (not by the mass); the label keeps its distance to the icon
     private _icon = _vehicle getVariable ["MM_var_icon", "iconCar"];
     private _size = MM_var_vehicleIconSize * ([_icon] call MM_fnc_vehicleIconScale);
     private _isNear = isServer || {_vehicle distance _camPos <= _objectViewDistance};

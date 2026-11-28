@@ -95,10 +95,10 @@ SC_fnc_moveAiOutOfVehicle = {
     } forEach (fullCrew _vehicle);
 };
 
-// ---- lock key (user decision: J instead of scroll actions) ----
+// ---- lock key (J instead of scroll actions) ----
 
 SC_var_vehicleLockKey = 36;          // DIK_J (vanilla: tasks overview; only swallowed when it locks / unlocks)
-SC_var_vehicleLockDistance = 5;      // m outside the vehicle's bounding sphere, like the radius of the former actions
+SC_var_vehicleLockDistance = 5;      // m outside the vehicle's bounding sphere
 
 // the vehicle the key acts on: the lockable one the player sits in, else the lockable one he looks at within reach
 // (SC_var_lockable: set by SC_fnc_initSpawnedVehicle on every machine)

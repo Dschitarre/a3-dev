@@ -11,8 +11,7 @@
 BR_var_militaryVehicleChance = 0.5;     // a car at a military drop spot is a military vehicle this often
 BR_var_militarySpotHouses = 3;          // a drop spot with this many military buildings is a military site
 BR_var_boatSpacing = 450;               // coast spots (BR\landmass.sqf coast cells) for boats at least this far apart, picked
-                                        // in random order: about 1.5 boats per km of coastline, evenly spread (user
-                                        // 2026-11-23: more boats; 700 m before) ...
+                                        // in random order: about 1.5 boats per km of coastline, evenly spread ...
 BR_var_boatIslandMinCells = 20;         // ... with one on every landmass of at least this many grid cells first
 BR_var_boatShoreDistance = [10, 120];   // a boat floats this far from the shore at most ...
 BR_var_boatDepth = [-1.5, -25];         // ... where the water is this deep ...
@@ -27,15 +26,14 @@ BR_var_townVehicleSpacing = 100;        // minimum spacing between settlement ca
 BR_var_townVehicleShare = 0.45;         // reserve the majority of cars for roads outside settlements
 BR_var_ruralVehicleTownGap = 500;
 BR_var_vehicleSpawnTries = 40;          // random tries per vehicle
-BR_var_vehicleDensity = 0.6;           // scales cars and helicopters together, their shares kept (user 2026-11-23: more
-                                        // vehicles; 0.4 before)
+BR_var_vehicleDensity = 0.6;           // scales cars and helicopters together, their shares kept
 BR_var_vehicleSpawnSleep = 0.03;        // s between two vehicles (scheduled, the server does not stall)
 BR_var_roadSearchRadius = 150;
 BR_var_vehicleFuel = [0.25, 0.7];       // random fuel in [min, max]
 BR_var_vehicleSpawnProtection = 5;      // seconds without damage, the physics settle
 BR_var_vehicleLodDistance = 500;        // a vehicle with a living combatant this close is simulated, others not ...
 BR_var_vehicleLodInterval = 3;          // ... checked this often
-// Airfields (user 2026-11-23: 1-3 planes and 1-3 helicopters on every airfield, by its size and chance): the runways of
+// Airfields (1-3 planes and 1-3 helicopters on every airfield, by its size and chance): the runways of
 // the world in the play area (CfgWorlds ilsPosition and SecondaryAirports, BR_fnc_airfields), on top of the random
 // helicopters above
 BR_var_airfieldSizeSteps = [400, 1000];         // runway length (m) for size 2 and 3: Altis main 1360, its five strips

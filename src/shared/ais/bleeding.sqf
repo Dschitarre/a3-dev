@@ -174,7 +174,7 @@ AIS_var_hudWidth = 16;
 AIS_var_hudTextWidth = 7.5;         // "Bleeding out (100 %)", the bar fills the rest of the row
 AIS_var_hudPadding = 0.25;          // inside the panels (rows are only one cell high)
 AIS_var_hudGap = 0.1;               // between the panels (UI_GAP)
-AIS_var_hudBottomMargin = 1.5;      // below the lowest panel, where the old "press space" text was
+AIS_var_hudBottomMargin = 1.5;      // below the lowest panel
 AIS_var_hudUpdateInterval = 0.5;    // seconds
 
 // [cell width, cell height] of the vanilla GUI grid (GUI_GRID_W / GUI_GRID_H of \a3\ui_f\hpp\defineCommon.inc)

@@ -14,10 +14,7 @@ BR_var_airdropZoneShare = 0.8;              // the crate lands within this share
 BR_var_airdropSmoke = "SmokeShellPurple";
 
 /*
-    Crate content (user 2026-11-24: "the loot in the supply drops on Chernarus is really bad"). Before, a crate held a
-    primary of the "rare" tier - every family of a class equally likely and SMGs, shotguns and launchers included, so
-    often a weak gun - and 6 elite loot rolls of random categories: no vest or no healing at all was common. Now a crate
-    is a fixed kit worth the risk, picked generically from the loaded pools and the game config (BR_fnc_initAirdropKit,
+    Crate content: a fixed kit worth the risk, picked generically from the loaded pools and the game config (BR_fnc_initAirdropKit,
     once per mission), on every map: a strong primary with an optic and ammo, armor, a big backpack, healing and
     throwables, plus a few random elite rolls on top.
 */

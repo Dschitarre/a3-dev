@@ -127,7 +127,7 @@ SC_fnc_initKillFeedServer = {
         _unit getVariable ["SC_var_rank", 1]
     };
     KF_fnc_killCamRoundOver = {missionNamespace getVariable ["SC_var_roundEnded", false]};
-    // after the kill cam: through black to the own body, then through black to the respawn menu (user)
+    // after the kill cam: through black to the own body, then through black to the respawn menu
     KF_var_killCamOutro = "body";
 
     if (missionNamespace getVariable ["KF_cba_enabled", true]) then {

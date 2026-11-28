@@ -1138,8 +1138,8 @@ CU_fnc_clientFrame = {
         CU_var_epoch = CU_var_epoch + 1;
     };
 
-    // Off while the vanilla spectator is open: it lists only units that are not hidden, so culled units were missing
-    // from its list (user 2026-11-23); on again when it closes. A switch-off by hand (debug menu) stays off.
+    // Off while the vanilla spectator is open: it lists only units that are not hidden, so culled units would be missing
+    // from its list; on again when it closes. A switch-off by hand (debug menu) stays off.
     private _spectating = !isNull findDisplay 60492;
 
     if (_spectating && {CU_var_enabled}) then {

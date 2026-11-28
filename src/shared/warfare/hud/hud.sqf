@@ -656,8 +656,7 @@ SC_fnc_hudUpdateGroupRow = {
     [_iconCtrl, _iconScale] call SC_fnc_hudScaleCtrl;
 
     // the vehicle picture sized by its opaque area (UI_fnc_vehiclePictureFill), so thin and bulky vehicles look alike;
-    // here a typical vehicle fills its whole slot and bulky ones reach a little into the neighbouring columns (user:
-    // too small at 0.73 of the slot)
+    // here a typical vehicle fills its whole slot and bulky ones reach a little into the neighbouring columns
     private _vehicleCtrl = _display displayCtrl (_idc + 6);
 
     if (_vehiclePicture != "") then {
@@ -746,8 +745,8 @@ SC_var_hudLowHealth = 25;          // HP below which the HP bar is filled in the
 SC_var_hudColumnGap = 0.25;        // gap between the two columns of the panel, relative to a side column's width
 
 /*
-    Two columns at the bottom right, both bottom aligned above the chat input / channel line (SC_var_hudBottomGap; user
-    decision 2026-11-13). Left, from the top down: the side symbols, the points of every side, their points per minute
+    Two columns at the bottom right, both bottom aligned above the chat input / channel line (SC_var_hudBottomGap).
+    Left, from the top down: the side symbols, the points of every side, their points per minute
     ("+0.4"), the unit counts and the spawn vehicles (SC\hud\spawnVehicleStatus.sqf); left of it a symbol per row: the
     points symbol (points), an arrow up (points per minute), a person (counts), and the spawn vehicles' direction arrows.
     Right, at the right screen edge, from the top down: rank, XP, stamina, HP and two perk rows (perks 1 - 3 in the upper
@@ -775,7 +774,7 @@ SC_fnc_hudLayoutPlayerStats = {
         _textSize] call SC_fnc_hudFitFontHeight);
 
     // unit counts: one row, 0.7 of the points box high, the number over the whole column width. The vehicle counts are
-    // shown in the vehicle spawn dialog (your side's vehicles / limit, user decision), not here.
+    // shown in the vehicle spawn dialog (your side's vehicles / limit), not here.
     private _countHeight = 0.7 * _sideHeight;
 
     // tops of the rows, measured from the bottom edge of the safe zone (share of its height); the bottom edge of both
@@ -789,7 +788,7 @@ SC_fnc_hudLayoutPlayerStats = {
     private _countsTop = _spawnRowsTop + ([0, _gapY] select (_spawnRowCount > 0)) + _countHeight;
     private _ratesTop = _countsTop + _barHeight;
     private _ticketsTop = _ratesTop + _gapY + _sideHeight;
-    // the sides are told apart by their NATO symbols above their columns (no colored backgrounds, user decision): a
+    // the sides are told apart by their NATO symbols above their columns (no colored backgrounds): a
     // row of SC_var_hudSideSymbolScale bars, the pictures in square boxes (width share = height share * 9 / 16) of
     // SC_var_hudSideSymbolPictureScale rows, centred on the columns and the row
     private _symbolRowHeight = SC_var_hudSideSymbolScale * _barHeight;

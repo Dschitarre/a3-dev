@@ -30,7 +30,7 @@ class RscTitles {
                 w = UI_W(GG_HUD_W);
                 h = UI_H(GG_HUD_ROW_H);
             };
-            // health fill in green (the only green bar, user decision); GG_fnc_guiLoop scales its width (full = 100 HP)
+            // health fill in green (the only green bar); GG_fnc_guiLoop scales its width (full = 100 HP)
             class hpBackground: UI_HudPanel {
                 idc = 1200;
                 x = GG_HUD_X;

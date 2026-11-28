@@ -317,8 +317,8 @@ VA_fnc_onArsenalPreOpen = {
 // collects the arsenal content (and the current gear) as the whitelist for loading saved loadouts and the arsenal
 // content alone for the locked items; then the mode's list decorations. The event comes at the end of the arsenal's
 // init (BIS_fnc_arsenal_center / _cargo / _target exist). Runs unscheduled: at the first opening the arsenal's init
-// runs scheduled, and after the scheduler suspended it the script continued in uiNamespace, where the mode's functions
-// are undefined (RPT: errors in the middle of the first list decoration).
+// runs scheduled, and once the scheduler suspends it the script would continue in uiNamespace, where the mode's
+// functions are undefined.
 VA_fnc_onArsenalOpened = {
     disableSerialization;
     params ["_display"];

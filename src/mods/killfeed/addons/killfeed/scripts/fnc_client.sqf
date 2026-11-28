@@ -38,7 +38,7 @@ KF_var_blockPadding = [0.15, 0]; // cells between a block's edge and its text, h
 KF_var_blockGap = 0.15; // cells between two blocks: the standard row gap (UI_var_textBlockGap of the
 // missions)
 KF_var_deathFeedMaxWidth = 16; // cells: longer lines of the death feed wrap
-KF_var_barWidth = 7; // cells: fixed width of a bar entry, as the player's HP bar of GunGame (user)
+KF_var_barWidth = 7; // cells: fixed width of a bar entry, as the player's HP bar of GunGame
 KF_var_barColor = [0.3, 0.3, 0.3, 0.55]; // fill of a bar entry: the grey of the game modes' HUD fill level bars
 KF_var_feedMoveDuration = 0.25; // s: kill feed / mid feed lines move to their new place
 KF_var_feedFadeInDuration = 0.3; // s: a new line fades in
@@ -51,7 +51,7 @@ KF_var_remeasurePending = createHashMap; // feeds with a pending redraw for meas
 KF_var_animatedFeedRedraws = createHashMapFromArray [["killFeed", {call KF_fnc_drawKillFeed}], ["midFeed", {call KF_fnc_drawMidFeed}]];
 
 // ---- colors ----
-// The killfeed's own fixed palette (as before the UI rework): side names, the player's own name ("You", yellow),
+// The killfeed's own fixed palette: side names, the player's own name ("You", yellow),
 // friendly fire (red), text white, icons a bit dimmer.
 KF_var_fixedColors = [
 ["kf:west", "#0066B3"],
@@ -283,8 +283,8 @@ KF_fnc_createTextEntry = {
 };
 
 // A bar entry at _y in the style of the fill level bars of the game modes' HUDs (SC): the whole bar on the HUD
-// background, the filled share grey transparent (always, user: no red at low health), "<HP> HP" on it; one
-// text line high and always KF_var_barWidth wide (a fixed size, user). Returns [width, height].
+// background, the filled share grey transparent (also at low health), "<HP> HP" on it; one text line high and always
+// KF_var_barWidth wide. Returns [width, height].
 KF_fnc_createBarEntry = {
     params ["_layout", "_y", "", "_fill"];
 
@@ -784,8 +784,7 @@ KF_fnc_hideKillInfo = {
     call KF_fnc_drawKillInfo;
 };
 
-// at its former position, but inside the safe zone (it was cut off at the top with large interface sizes); on a
-// block like the feeds (a centered text at the HUD size that doesn't need the player's whole attention)
+// at the top, inside the safe zone (also with large interface sizes); on a block like the feeds (a centered text at the HUD size that doesn't need the player's whole attention)
 KF_fnc_drawKillInfo = {
     [
     "killInfo",

@@ -16,7 +16,7 @@ BR_var_hudPhaseStarts = createHashMap;  // phase key -> serverTime this client f
 BR_fnc_formatTime = {
     params ["_seconds"];
 
-    // ceil of a small negative value is -0, and 0 max -0 stays -0: the timer showed "-0:00" (user 2026-11-23)
+    // ceil of a small negative value is -0, and 0 max -0 stays -0 ("-0:00")
     _seconds = ceil _seconds;
     if (_seconds <= 0) then {_seconds = 0};
     private _secs = _seconds mod 60;
@@ -307,7 +307,7 @@ BR_fnc_hudLoop = {
         };
 
         if ([_shown, "rightRows", _boostShown] call BR_fnc_hudChanged) then {
-            // the boost bar did not show for the user (2026-11-23): its visibility to the client RPT
+            // the boost bar's visibility to the client RPT
             diag_log format ["BR hud: boost bar %1 (fill %2, end in %3 s)", ["hidden", "shown"] select _boostShown, _boost toFixed 2,
                 round ((player getVariable ["BR_var_boostEnd", 0]) - serverTime)];
             {[_x, 1] call BR_fnc_hudPlaceRow} forEach _boostControls;

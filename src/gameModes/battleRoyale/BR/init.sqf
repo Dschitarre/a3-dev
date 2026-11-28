@@ -113,7 +113,7 @@ BR_fnc_startModsServer = {
 
     KF_var_killInfoIncludeTK = true;
     KF_var_showFriendlyFire = false; // a downed mate finished by mistake or a grenade: no "friendly fire" marks
-    KF_var_killCamEnabled = true; // user 2026-11-23: the kill cam first, then the spectator (BR_fnc_killed waits for it)
+    KF_var_killCamEnabled = true; // the kill cam first, then the spectator (BR_fnc_killed waits for it)
 
     // team modes (BR\downed.sqf, as Sector Control): going down is the kill in the feeds (AIS reports it), the death
     // afterwards ("finally killed", bled out) only a line in the mid feed

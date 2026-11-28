@@ -62,8 +62,8 @@ SC_fnc_initServer = {
         call H_fnc_startHolsterServer;
     };
     if (missionNamespace getVariable ["UF_cba_enabled", true]) then {
-        // a vehicle that overturns in a base is put back on its wheels after SC_var_baseUnflipDelay, whoever's it is
-        // (user 2026-11-27); helicopters: SC_fnc_updateVehicle
+        // a vehicle that overturns in a base is put back on its wheels after SC_var_baseUnflipDelay, whoever's it is;
+        // helicopters: SC_fnc_updateVehicle
         UF_var_autoUnflipDelay = {
             params ["_vehicle"];
 
@@ -98,7 +98,7 @@ SC_fnc_aiPopulationArea = {SC_var_mapArea};
 SC_fnc_vehicleAvailabilityArea = {SC_var_mapArea};
 
 // land area (m²) of an area marker: a grid over the marker (about 200 x 200 points) tested with surfaceIsWater, so a
-// coastal or whole-island play zone counts its land and islands, not the sea (user 2026-11-26)
+// coastal or whole-island play zone counts its land and islands, not the sea
 SC_fnc_markerLandArea = {
     params ["_marker"];
 
